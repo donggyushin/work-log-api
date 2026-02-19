@@ -32,7 +32,7 @@ jobs:
 
       # Docker Compose로 컨테이너 실행
       - name: Docker 컨테이너 시작
-        run: docker-compose up -d
+        run: docker compose up -d
 
       # 컨테이너가 정상 실행될 때까지 대기
       - name: 컨테이너 준비 대기
@@ -111,4 +111,4 @@ jobs:
       # 정리
       - name: 컨테이너 정리
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v
