@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  docker-test:
+    name: Docker 컨테이너 실행 테스트
+    runs-on: ubuntu-latest
+
+    steps:
+      # 코드 체크아웃
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      # .env 파일 생성 (테스트용)
+      - name: 환경 변수 파일 생성
+        run: |
+          cat > .env << EOF
+          MONGO_INITDB_ROOT_USERNAME=admin
+          MONGO_INITDB_ROOT_PASSWORD=testpassword
+          MONGO_PORT=27017
+          MONGO_EXPRESS_PORT=8081
+          MONGO_EXPRESS_USERNAME=admin
+          MONGO_EXPRESS_PASSWORD=testpassword
+          EOF
+
+      # Docker Compose로 컨테이너 실행
+      - name: Docker 컨테이너 시작
+        run: make up
+
+      # 컨테이너가 정상 실행될 때까지 대기
+      - name: 컨테이너 준비 대기
+        run: sleep 10
+
+      # 컨테이너 상태 확인
+      - name: 컨테이너 상태 확인
+        run: |
+          echo "실행 중인 컨테이너:"
+          docker ps
+
+          # API 컨테이너 확인
+          if ! docker ps | grep -q work-log-api; then
+            echo "❌ API 컨테이너가 실행되지 않았습니다"
+            exit 1
+          fi
+
+          # MongoDB 컨테이너 확인
+          if ! docker ps | grep -q work-log-mongodb; then
+            echo "❌ MongoDB 컨테이너가 실행되지 않았습니다"
+            exit 1
+          fi
+
+          # Mongo Express 컨테이너 확인
+          if ! docker ps | grep -q work-log-mongo-express; then
+            echo "❌ Mongo Express 컨테이너가 실행되지 않았습니다"
+            exit 1
+          fi
+
+          echo "✅ 모든 컨테이너가 정상 실행 중입니다"
+
+      # API 엔드포인트 테스트
+      - name: API 응답 확인
+        run: |
+          # API가 응답할 때까지 최대 30초 대기
+          for i in {1..30}; do
+            if curl -f http://localhost:8000/api/v1; then
+              echo "✅ API가 정상 응답합니다"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "❌ API 응답 실패"
+              docker logs work-log-api
+              exit 1
+            fi
+            echo "API 응답 대기 중... ($i/30)"
+            sleep 1
+          done
+
+      # API 응답 내용 검증
+      - name: API 응답 내용 검증
+        run: |
+          RESPONSE=$(curl -s http://localhost:8000/api/v1)
+          echo "API 응답: $RESPONSE"
+
+          if echo "$RESPONSE" | grep -q "hello world"; then
+            echo "✅ API 응답 내용이 올바릅니다"
+          else
+            echo "❌ API 응답 내용이 예상과 다릅니다"
+            exit 1
+          fi
+
+      # 실패 시 로그 출력
+      - name: 컨테이너 로그 출력 (실패 시)
+        if: failure()
+        run: |
+          echo "=== API 컨테이너 로그 ==="
+          docker logs work-log-api
+          echo ""
+          echo "=== MongoDB 컨테이너 로그 ==="
+          docker logs work-log-mongodb
+          echo ""
+          echo "=== Mongo Express 컨테이너 로그 ==="
+          docker logs work-log-mongo-express
+
+      # 정리
+      - name: 컨테이너 정리
+        if: always()
+        run: make clean

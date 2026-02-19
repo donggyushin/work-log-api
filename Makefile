@@ -13,33 +13,33 @@ help:
 
 # 컨테이너 시작
 up:
-	docker-compose up -d
+	docker compose up -d
 	@echo "✅ 컨테이너가 시작되었습니다."
 	@echo "   API: http://localhost:8000/api/v1"
 	@echo "   MongoDB Admin: http://localhost:8081"
 
 # 컨테이너 종료
 down:
-	docker-compose down
+	docker compose down
 	@echo "✅ 컨테이너가 종료되었습니다."
 
 # 컨테이너 재시작
 restart:
-	docker-compose restart
+	docker compose restart
 	@echo "✅ 컨테이너가 재시작되었습니다."
 
 # 로그 보기 (실시간)
 logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 # 이미지 새로 빌드
 build:
-	docker-compose build
+	docker compose build
 	@echo "✅ 이미지 빌드가 완료되었습니다."
 
 # 전부 삭제 (컨테이너, 이미지, 볼륨)
 clean:
-	docker-compose down -v --rmi all
+	docker compose down -v --rmi all
 	@echo "✅ 모든 컨테이너와 이미지가 삭제되었습니다."
 
 # MongoDB 쉘 접속
