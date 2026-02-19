@@ -31,6 +31,10 @@ jobs:
           JWT_SECRET_KEY=jwt_secret_key
           EOF
 
+      # Docker 이미지 빌드
+      - name: Docker 이미지 빌드
+        run: make build
+
       # Docker Compose로 컨테이너 실행
       - name: Docker 컨테이너 시작
         run: make up
