@@ -12,7 +12,9 @@ class Gender(str, Enum):
 
 
 class User(BaseModel):
-    id: Optional[str] = Field(default=None, description="User ID (MongoDB ObjectId)")
+    id: str = Field(description="User ID (MongoDB ObjectId)")
+    email: str = Field(..., description="User's Email")
+    password: str = Field(..., description="User's Password")
     username: Optional[str] = Field(
         ..., min_length=1, max_length=50, description="Username"
     )
