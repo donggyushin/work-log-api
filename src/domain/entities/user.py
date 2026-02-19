@@ -14,10 +14,10 @@ class Gender(str, Enum):
 class User(BaseModel):
     id: str = Field(description="User ID (MongoDB ObjectId)")
     email: str = Field(min_length=10, description="User's Email")
-    password: str = Field(min_length=10, max_length=50, description="User's Password")
+    password: str = Field(description="User's Password")
     username: Optional[str] = Field(
         default=None, min_length=1, max_length=50, description="Username"
     )
     birth: Optional[date] = Field(default=None, description="Date of birth")
     gender: Optional[Gender] = Field(default=None, description="User gender")
-    email_verified: bool = Field(default=True, description="Is user email verified")
+    email_verified: bool = Field(default=False, description="Is user email verified")

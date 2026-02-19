@@ -9,8 +9,11 @@ services:
     volumes:
       - ./src:/app/src
       - ./main.py:/app/main.py
+    env_file:
+      - .env
     environment:
       - PYTHONUNBUFFERED=1
+      - MONGO_HOST=mongodb
     restart: unless-stopped
     depends_on:
       - mongodb
