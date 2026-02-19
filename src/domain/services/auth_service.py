@@ -1,5 +1,5 @@
 from src.domain.entities.user import User
-from src.domain.exceptions import EmailAlreadyExistsError
+from src.domain.exceptions import EmailAlreadyExistsError, PasswordLengthNotEnoughError
 from src.domain.interfaces.hasher import Hasher
 from src.domain.interfaces.jwt_provider import JWTProvider
 from src.domain.interfaces.user_repository import UserRepository
@@ -15,7 +15,7 @@ class AuthService:
         self.jwt_provider = jwt_provider
         self.hasher = hasher
 
-    async def register(self, email: str, password: str):
+    async def register(self, email: str, password: str) -> dict:
         """
         Register a new user and return JWT token
 
@@ -32,6 +32,11 @@ class AuthService:
         if await self.user_repository.find_by_email(email) is not None:
             raise EmailAlreadyExistsError(email)
 
+        password_min_length = 10
+
+        if password.__len__() < password_min_length:
+            raise PasswordLengthNotEnoughError(password_min_length)
+
         password = self.hasher.hash(password)
 
         # Create user entity
@@ -42,5 +47,8 @@ class AuthService:
         )
 
         # Save user to database
-        created_user = await self.user_repository.create(user)
-        print(created_user)
+        user = await self.user_repository.create(user)
+        accessToken = self.jwt_provider.generate_access_token(user.id)
+        refreshToken = self.jwt_provider.generate_refresh_token(user.id)
+
+        return {"accessToken": accessToken, "refreshToken": refreshToken}
