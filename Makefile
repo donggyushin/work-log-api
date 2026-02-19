@@ -14,7 +14,9 @@ help:
 # 컨테이너 시작
 up:
 	docker-compose up -d
-	@echo "✅ 컨테이너가 시작되었습니다. http://localhost:8000/api/v1"
+	@echo "✅ 컨테이너가 시작되었습니다."
+	@echo "   API: http://localhost:8000/api/v1"
+	@echo "   MongoDB Admin: http://localhost:8081"
 
 # 컨테이너 종료
 down:
