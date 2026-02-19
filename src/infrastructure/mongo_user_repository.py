@@ -2,9 +2,10 @@ from typing import Optional
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
 
 from src.domain.entities.user import User
+from src.domain.interfaces.user_repository import UserRepository
 
 
-class MongoUserRepository:
+class MongoUserRepository(UserRepository):
     def __init__(self, db_client: AsyncIOMotorClient, db_name: str = "dailylog"):
         self.collection: AsyncIOMotorCollection = db_client[db_name]["users"]
 
