@@ -16,7 +16,7 @@ class User(BaseModel):
     email: str = Field(..., description="User's Email")
     password: str = Field(..., description="User's Password")
     username: Optional[str] = Field(
-        ..., min_length=1, max_length=50, description="Username"
+        default=None, min_length=1, max_length=50, description="Username"
     )
-    birth: Optional[date] = Field(..., description="Date of birth")
-    gender: Optional[Gender] = Field(..., description="User gender")
+    birth: Optional[date] = Field(default=None, description="Date of birth")
+    gender: Optional[Gender] = Field(default=None, description="User gender")
