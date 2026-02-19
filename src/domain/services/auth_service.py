@@ -2,6 +2,7 @@ from src.domain.entities.user import User
 from src.domain.exceptions import EmailAlreadyExistsError, PasswordLengthNotEnoughError
 from src.domain.interfaces.hasher import Hasher
 from src.domain.interfaces.jwt_provider import JWTProvider
+from src.domain.interfaces.refresh_token_repository import RefreshTokenRepository
 from src.domain.interfaces.user_repository import UserRepository
 
 
@@ -9,11 +10,16 @@ class AuthService:
     """Authentication service for user registration and login"""
 
     def __init__(
-        self, user_repository: UserRepository, jwt_provider: JWTProvider, hasher: Hasher
+        self,
+        user_repository: UserRepository,
+        jwt_provider: JWTProvider,
+        hasher: Hasher,
+        refresh_token_repository: RefreshTokenRepository,
     ):
         self.user_repository = user_repository
         self.jwt_provider = jwt_provider
         self.hasher = hasher
+        self.refresh_token_repository = refresh_token_repository
 
     async def register(self, email: str, password: str) -> dict:
         """
@@ -50,5 +56,7 @@ class AuthService:
         user = await self.user_repository.create(user)
         accessToken = self.jwt_provider.generate_access_token(user.id)
         refreshToken = self.jwt_provider.generate_refresh_token(user.id)
+
+        await self.refresh_token_repository.create(refreshToken)
 
         return {"accessToken": accessToken, "refreshToken": refreshToken}
