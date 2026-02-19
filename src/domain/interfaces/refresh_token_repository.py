@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class RefreshTokenRepository(ABC):
     @abstractmethod
-    async def create(self, token: str):
+    async def create(self, token: str, user_id: str):
         pass
 
     @abstractmethod

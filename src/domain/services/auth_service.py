@@ -57,6 +57,6 @@ class AuthService:
         accessToken = self.jwt_provider.generate_access_token(user.id)
         refreshToken = self.jwt_provider.generate_refresh_token(user.id)
 
-        await self.refresh_token_repository.create(refreshToken)
+        await self.refresh_token_repository.create(refreshToken, user.id)
 
         return {"accessToken": accessToken, "refreshToken": refreshToken}
