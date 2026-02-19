@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  # API 서버
+  api:
+    build: .
+    container_name: work-log-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./main.py:/app/main.py
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  # 나중에 데이터베이스 등 추가 가능
+  # db:
+  #   image: postgres:16
+  #   container_name: work-log-db
+  #   environment:
+  #     POSTGRES_PASSWORD: password
+  #   ports:
+  #     - "5432:5432"
