@@ -44,21 +44,38 @@ The codebase follows clean architecture with clear separation of concerns:
 
 ```
 src/
-├── domain/          # Core business logic and entities
-│   └── entities/    # Domain models (e.g., user.py)
-└── presentation/    # API layer
-    └── api.py       # FastAPI app and routes
+├── domain/              # Core business logic (no framework dependencies)
+│   ├── entities/        # Domain models (User)
+│   ├── interfaces/      # Abstract interfaces (repositories, providers)
+│   ├── services/        # Business logic services (AuthService)
+│   └── exceptions.py    # Domain-specific exceptions
+├── infrastructure/      # External concerns (DB, crypto, JWT)
+│   ├── database.py      # MongoDB connection management
+│   ├── mongo_*_repository.py  # Repository implementations
+│   ├── bcrypt_hasher.py       # Password hashing
+│   └── py_jwt_provider.py     # JWT token generation
+└── presentation/        # HTTP/API layer
+    └── api.py           # FastAPI routes
 ```
 
-**Key Points:**
-- `domain/entities/` contains pure business objects with no framework dependencies
-- `presentation/` handles HTTP concerns using FastAPI
-- Entry point is `main.py` which imports the FastAPI app from `src.presentation.api`
-- Expected future layers: `application/` (use cases), `infrastructure/` (DB, external services)
+**Key Architectural Patterns:**
+
+1. **Dependency Inversion**: Domain layer defines interfaces (`UserRepository`, `Hasher`, `JWTProvider`, `RefreshTokenRepository`), infrastructure implements them
+2. **Repository Pattern**: Data access abstracted via repository interfaces
+   - MongoDB `_id` ↔ User `id` conversion happens in repositories
+   - Use `model_dump(exclude={"id"})` when inserting, convert `_id` to `id` string when reading
+3. **Service Layer**: `AuthService` contains registration business logic, depends only on interfaces
+4. **Domain Exceptions**: Business rule violations raise domain exceptions (`EmailAlreadyExistsError`, `PasswordLengthNotEnoughError`)
+
+**MongoDB Integration Pattern:**
+- Repositories convert between MongoDB documents (with `_id` as ObjectId) and domain entities (with `id` as str)
+- When creating: exclude `id`, get `inserted_id` from result, return entity with `id=str(result.inserted_id)`
+- When reading: `result.pop("_id")` and assign to `result["id"] = str(_id)` before constructing entity
 
 ### Technology Stack
 - **Framework**: FastAPI with Uvicorn ASGI server
-- **Database**: MongoDB 7 with Motor (async driver expected for future implementation)
+- **Database**: MongoDB 7 with Motor (async MongoDB driver)
+- **Authentication**: JWT tokens (access + refresh), bcrypt password hashing
 - **Package Manager**: uv (fast Python package manager)
 - **Python Version**: 3.14
 - **Containerization**: Docker + Docker Compose
@@ -95,8 +112,13 @@ Required variables in `.env`:
 ## Code Conventions
 
 When extending this codebase:
-- Place new domain entities in `src/domain/entities/`
-- Add API routes in `src/presentation/api.py` or create new router modules
-- Future MongoDB integration should use Motor (async MongoDB driver for Python)
-- Follow FastAPI async patterns (`async def` for route handlers)
+- **Domain Layer**: Define interfaces in `src/domain/interfaces/`, implement in `infrastructure/`
+- **Entities**: Place new domain entities in `src/domain/entities/` (pure Pydantic models, no DB concerns)
+- **Services**: Business logic goes in `src/domain/services/`, depends only on domain interfaces
+- **Repositories**: Implement repository interfaces in `infrastructure/mongo_*_repository.py`
+  - Collection name should match entity (e.g., `users` for User, `refresh_tokens` for RefreshToken)
+  - Always handle `_id` ↔ `id` conversion at repository boundaries
+- **API Routes**: Add routes in `src/presentation/api.py` or create new router modules
+- **Exceptions**: Domain business rule violations raise exceptions from `src/domain/exceptions.py`
+- Follow FastAPI async patterns (`async def` for route handlers and repository methods)
 - Container names follow pattern: `dailylog-{service}`
