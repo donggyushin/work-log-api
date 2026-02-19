@@ -20,3 +20,4 @@ class User(BaseModel):
     )
     birth: Optional[date] = Field(default=None, description="Date of birth")
     gender: Optional[Gender] = Field(default=None, description="User gender")
+    email_verified: bool = Field(default=True, description="Is user email verified")
