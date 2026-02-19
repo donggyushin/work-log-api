@@ -15,7 +15,7 @@ class AuthService:
         self.jwt_provider = jwt_provider
         self.hasher = hasher
 
-    async def register(self, email: str, password: str) -> str:
+    async def register(self, email: str, password: str):
         """
         Register a new user and return JWT token
 
@@ -43,7 +43,4 @@ class AuthService:
 
         # Save user to database
         created_user = await self.user_repository.create(user)
-
-        # Generate and return JWT token
-        token = self.jwt_provider.generate_token(created_user.id)
-        return token
+        print(created_user)

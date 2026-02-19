@@ -3,7 +3,11 @@ from abc import ABC, abstractmethod
 
 class JWTProvider(ABC):
     @abstractmethod
-    def generate_token(self, user_id: str) -> str:
+    def generate_access_token(self, user_id: str) -> str:
+        pass
+
+    @abstractmethod
+    def generate_refresh_token(self, user_id: str) -> str:
         pass
 
     @abstractmethod
