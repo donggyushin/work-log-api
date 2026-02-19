@@ -28,7 +28,12 @@ jobs:
           MONGO_EXPRESS_PORT=8081
           MONGO_EXPRESS_USERNAME=admin
           MONGO_EXPRESS_PASSWORD=testpassword
+          JWT_SECRET_KEY=jwt_secret_key
           EOF
+
+      # Docker 이미지 빌드
+      - name: Docker 이미지 빌드
+        run: make build
 
       # Docker Compose로 컨테이너 실행
       - name: Docker 컨테이너 시작
