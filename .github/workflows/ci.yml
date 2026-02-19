@@ -45,19 +45,19 @@ jobs:
           docker ps
 
           # API 컨테이너 확인
-          if ! docker ps | grep -q work-log-api; then
+          if ! docker ps | grep -q dailylog-api; then
             echo "❌ API 컨테이너가 실행되지 않았습니다"
             exit 1
           fi
 
           # MongoDB 컨테이너 확인
-          if ! docker ps | grep -q work-log-mongodb; then
+          if ! docker ps | grep -q dailylog-mongodb; then
             echo "❌ MongoDB 컨테이너가 실행되지 않았습니다"
             exit 1
           fi
 
           # Mongo Express 컨테이너 확인
-          if ! docker ps | grep -q work-log-mongo-express; then
+          if ! docker ps | grep -q dailylog-mongo-express; then
             echo "❌ Mongo Express 컨테이너가 실행되지 않았습니다"
             exit 1
           fi
@@ -75,7 +75,7 @@ jobs:
             fi
             if [ $i -eq 30 ]; then
               echo "❌ API 응답 실패"
-              docker logs work-log-api
+              docker logs dailylog-api
               exit 1
             fi
             echo "API 응답 대기 중... ($i/30)"
@@ -100,13 +100,13 @@ jobs:
         if: failure()
         run: |
           echo "=== API 컨테이너 로그 ==="
-          docker logs work-log-api
+          docker logs dailylog-api
           echo ""
           echo "=== MongoDB 컨테이너 로그 ==="
-          docker logs work-log-mongodb
+          docker logs dailylog-mongodb
           echo ""
           echo "=== Mongo Express 컨테이너 로그 ==="
-          docker logs work-log-mongo-express
+          docker logs dailylog-mongo-express
 
       # 정리
       - name: 컨테이너 정리
