@@ -1,4 +1,5 @@
 from src.domain.entities.user import User
+from src.domain.exceptions import EmailAlreadyExistsError
 from src.domain.interfaces.hasher import Hasher
 from src.domain.interfaces.jwt_provider import JWTProvider
 from src.domain.interfaces.user_repository import UserRepository
@@ -28,7 +29,9 @@ class AuthService:
         Raises:
             EmailAlreadyExistsError: If email is already registered
         """
-        # TODO: Check if email already exists
+        if await self.user_repository.find_by_email(email) is not None:
+            raise EmailAlreadyExistsError(email)
+
         password = self.hasher.hash(password)
 
         # Create user entity

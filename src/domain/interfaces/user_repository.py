@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from src.domain.entities.user import User
 
@@ -8,13 +9,8 @@ class UserRepository(ABC):
 
     @abstractmethod
     async def create(self, user: User) -> User:
-        """
-        Create a new user in the database
+        pass
 
-        Args:
-            user: User entity to create
-
-        Returns:
-            Created user with generated ID
-        """
+    @abstractmethod
+    async def find_by_email(self, email: str) -> Optional[User]:
         pass
