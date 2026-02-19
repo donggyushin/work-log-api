@@ -12,12 +12,21 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
+    depends_on:
+      - mongodb
 
-  # 나중에 데이터베이스 등 추가 가능
-  # db:
-  #   image: postgres:16
-  #   container_name: work-log-db
-  #   environment:
-  #     POSTGRES_PASSWORD: password
-  #   ports:
-  #     - "5432:5432"
+  # MongoDB
+  mongodb:
+    image: mongo:7
+    container_name: work-log-mongodb
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:

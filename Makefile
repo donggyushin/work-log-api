@@ -1,14 +1,15 @@
-.PHONY: help up down restart logs build clean
+.PHONY: help up down restart logs build clean mongo-shell
 
 # 기본 명령어 (make 입력시 도움말 표시)
 help:
 	@echo "사용 가능한 명령어:"
-	@echo "  make up       - 컨테이너 시작"
-	@echo "  make down     - 컨테이너 종료"
-	@echo "  make restart  - 컨테이너 재시작"
-	@echo "  make logs     - 로그 보기"
-	@echo "  make build    - 이미지 새로 빌드"
-	@echo "  make clean    - 컨테이너 및 이미지 전부 삭제"
+	@echo "  make up          - 컨테이너 시작"
+	@echo "  make down        - 컨테이너 종료"
+	@echo "  make restart     - 컨테이너 재시작"
+	@echo "  make logs        - 로그 보기"
+	@echo "  make build       - 이미지 새로 빌드"
+	@echo "  make clean       - 컨테이너 및 이미지 전부 삭제"
+	@echo "  make mongo-shell - MongoDB 쉘 접속"
 
 # 컨테이너 시작
 up:
@@ -38,3 +39,7 @@ build:
 clean:
 	docker-compose down -v --rmi all
 	@echo "✅ 모든 컨테이너와 이미지가 삭제되었습니다."
+
+# MongoDB 쉘 접속
+mongo-shell:
+	@docker exec -it work-log-mongodb mongosh -u $${MONGO_INITDB_ROOT_USERNAME:-admin} -p $${MONGO_INITDB_ROOT_PASSWORD:-password123}
