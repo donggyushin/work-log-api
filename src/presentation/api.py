@@ -56,3 +56,12 @@ async def register(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except PasswordLengthNotEnoughError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@app.post("/api/v1/login", response_model=RegisterResponse)
+async def login(
+    request: RegisterRequest,
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+):
+    token = await auth_service.login(request.email, request.password)
+    return RegisterResponse(**token)
