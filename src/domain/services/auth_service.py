@@ -32,17 +32,22 @@ class AuthService:
         if user is None:
             raise UserNotFoundError()
 
-        passwordCorrect = self.hasher.verify(password, user.password)
+        is_password_correct = self.hasher.verify(password, user.password)
 
-        if passwordCorrect is False:
+        if is_password_correct is False:
             raise PasswordNotCorrectError()
 
-        # TODO: 이전 refresh token 전부 제거
+        tokens = await self.refresh_token_repository.find_tokens_by_user_id(user.id)
 
-        accessToken = self.jwt_provider.generate_access_token(user.id)
-        refreshToken = self.jwt_provider.generate_refresh_token(user.id)
+        for token in tokens:
+            await self.refresh_token_repository.delete(token)
 
-        return {"accessToken": accessToken, "refreshToken": refreshToken}
+        access_token = self.jwt_provider.generate_access_token(user.id)
+        refresh_token = self.jwt_provider.generate_refresh_token(user.id)
+
+        await self.refresh_token_repository.create(refresh_token, user.id)
+
+        return {"accessToken": access_token, "refreshToken": refresh_token}
 
     async def register(self, email: str, password: str) -> dict:
         if await self.user_repository.find_by_email(email) is not None:
@@ -64,9 +69,9 @@ class AuthService:
 
         # Save user to database
         user = await self.user_repository.create(user)
-        accessToken = self.jwt_provider.generate_access_token(user.id)
-        refreshToken = self.jwt_provider.generate_refresh_token(user.id)
+        access_token = self.jwt_provider.generate_access_token(user.id)
+        refresh_token = self.jwt_provider.generate_refresh_token(user.id)
 
-        await self.refresh_token_repository.create(refreshToken, user.id)
+        await self.refresh_token_repository.create(refresh_token, user.id)
 
-        return {"accessToken": accessToken, "refreshToken": refreshToken}
+        return {"accessToken": access_token, "refreshToken": refresh_token}
