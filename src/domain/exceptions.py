@@ -13,3 +13,13 @@ class EmailAlreadyExistsError(DomainException):
 class PasswordLengthNotEnoughError(DomainException):
     def __init__(self, min_length: int):
         super().__init__(f"Password should be over {min_length} characters")
+
+
+class UserNotFoundError(DomainException):
+    def __init__(self):
+        super().__init__("Can't find user")
+
+
+class PasswordNotCorrectError(DomainException):
+    def __init__(self):
+        super().__init__("Password Not Correct")

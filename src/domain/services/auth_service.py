@@ -1,5 +1,10 @@
 from src.domain.entities.user import User
-from src.domain.exceptions import EmailAlreadyExistsError, PasswordLengthNotEnoughError
+from src.domain.exceptions import (
+    EmailAlreadyExistsError,
+    PasswordLengthNotEnoughError,
+    PasswordNotCorrectError,
+    UserNotFoundError,
+)
 from src.domain.interfaces.hasher import Hasher
 from src.domain.interfaces.jwt_provider import JWTProvider
 from src.domain.interfaces.refresh_token_repository import RefreshTokenRepository
@@ -21,20 +26,25 @@ class AuthService:
         self.hasher = hasher
         self.refresh_token_repository = refresh_token_repository
 
+    async def login(self, email: str, password: str) -> dict:
+        user = await self.user_repository.find_by_email(email)
+
+        if user is None:
+            raise UserNotFoundError()
+
+        passwordCorrect = self.hasher.verify(password, user.password)
+
+        if passwordCorrect is False:
+            raise PasswordNotCorrectError()
+
+        # TODO: 이전 refresh token 전부 제거
+
+        accessToken = self.jwt_provider.generate_access_token(user.id)
+        refreshToken = self.jwt_provider.generate_refresh_token(user.id)
+
+        return {"accessToken": accessToken, "refreshToken": refreshToken}
+
     async def register(self, email: str, password: str) -> dict:
-        """
-        Register a new user and return JWT token
-
-        Args:
-            email: User's email address
-            password: User's password (will be hashed)
-
-        Returns:
-            JWT token string
-
-        Raises:
-            EmailAlreadyExistsError: If email is already registered
-        """
         if await self.user_repository.find_by_email(email) is not None:
             raise EmailAlreadyExistsError(email)
 
