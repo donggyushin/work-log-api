@@ -1,5 +1,6 @@
 from src.domain.interfaces.refresh_token_repository import RefreshTokenRepository
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
+from typing import List
 
 
 class MongoRefreshTokenRepository(RefreshTokenRepository):
@@ -11,6 +12,11 @@ class MongoRefreshTokenRepository(RefreshTokenRepository):
 
     async def delete(self, token: str):
         await self.collection.delete_one({"refresh_token": token})
+
+    async def find_tokens_by_user_id(self, user_id: str) -> List[str]:
+        cursor = self.collection.find({"user_id": user_id})
+        documents = await cursor.to_list(length=None)
+        return [doc["refresh_token"] for doc in documents]
 
     async def exists(self, token: str) -> bool:
         result = await self.collection.find_one({"refresh_token": token})

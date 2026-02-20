@@ -1,5 +1,10 @@
 from src.domain.entities.user import User
-from src.domain.exceptions import EmailAlreadyExistsError, PasswordLengthNotEnoughError
+from src.domain.exceptions import (
+    EmailAlreadyExistsError,
+    PasswordLengthNotEnoughError,
+    PasswordNotCorrectError,
+    UserNotFoundError,
+)
 from src.domain.interfaces.hasher import Hasher
 from src.domain.interfaces.jwt_provider import JWTProvider
 from src.domain.interfaces.refresh_token_repository import RefreshTokenRepository
@@ -21,20 +26,30 @@ class AuthService:
         self.hasher = hasher
         self.refresh_token_repository = refresh_token_repository
 
+    async def login(self, email: str, password: str) -> dict:
+        user = await self.user_repository.find_by_email(email)
+
+        if user is None:
+            raise UserNotFoundError()
+
+        is_password_correct = self.hasher.verify(password, user.password)
+
+        if is_password_correct is False:
+            raise PasswordNotCorrectError()
+
+        tokens = await self.refresh_token_repository.find_tokens_by_user_id(user.id)
+
+        for token in tokens:
+            await self.refresh_token_repository.delete(token)
+
+        access_token = self.jwt_provider.generate_access_token(user.id)
+        refresh_token = self.jwt_provider.generate_refresh_token(user.id)
+
+        await self.refresh_token_repository.create(refresh_token, user.id)
+
+        return {"accessToken": access_token, "refreshToken": refresh_token}
+
     async def register(self, email: str, password: str) -> dict:
-        """
-        Register a new user and return JWT token
-
-        Args:
-            email: User's email address
-            password: User's password (will be hashed)
-
-        Returns:
-            JWT token string
-
-        Raises:
-            EmailAlreadyExistsError: If email is already registered
-        """
         if await self.user_repository.find_by_email(email) is not None:
             raise EmailAlreadyExistsError(email)
 
@@ -54,9 +69,9 @@ class AuthService:
 
         # Save user to database
         user = await self.user_repository.create(user)
-        accessToken = self.jwt_provider.generate_access_token(user.id)
-        refreshToken = self.jwt_provider.generate_refresh_token(user.id)
+        access_token = self.jwt_provider.generate_access_token(user.id)
+        refresh_token = self.jwt_provider.generate_refresh_token(user.id)
 
-        await self.refresh_token_repository.create(refreshToken, user.id)
+        await self.refresh_token_repository.create(refresh_token, user.id)
 
-        return {"accessToken": accessToken, "refreshToken": refreshToken}
+        return {"accessToken": access_token, "refreshToken": refresh_token}
