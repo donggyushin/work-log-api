@@ -115,7 +115,9 @@ class DiaryService:
         return reply
 
     async def write_diary(
-        self, chat_session: ChatSession, target_message: ChatMessage
+        self,
+        chat_session: ChatSession,
+        target_message: ChatMessage,
     ) -> Diary:
         # AI 응답에서 title과 content 추출
         content_text = target_message.content
