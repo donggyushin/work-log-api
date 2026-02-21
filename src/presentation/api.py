@@ -1,12 +1,14 @@
 from contextlib import asynccontextmanager
 from typing import Annotated
 
+from anthropic import NotFoundError
 from fastapi import Depends, FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
 from src.domain.entities.user import User
 from src.domain.exceptions import (
     EmailAlreadyExistsError,
+    ExpiredError,
     NotCorrectError,
     PasswordLengthNotEnoughError,
 )
@@ -105,7 +107,17 @@ async def verify_email(
     except NotCorrectError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="유효하지 않은 인증번호입니다.",
+            detail="유효하지 않은 인증번호 입니다.",
+        )
+    except NotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="유효하지 않은 인증번호 입니다.",
+        )
+    except ExpiredError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="유효 기간이 만료 되었습니다.",
         )
 
 

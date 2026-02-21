@@ -30,11 +30,6 @@ class EmailVerificationService:
         if verification_code is None:
             raise NotFoundError()
 
-        # src/domain/services/email_verification_service.py:33 근처에 추가
-        print(f"Expected code: {verification_code.code}")
-        print(f"Received code: {code}")
-        print(f"Match: {verification_code.code == code}")
-
         if verification_code.code != code:
             raise NotCorrectError()
 
