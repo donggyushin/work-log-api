@@ -84,6 +84,21 @@ async def send_email_verification_code(
     await email_verification_service.send_verification_code(current_user)
 
 
+class VerifyEmailRequest(BaseModel):
+    code: str
+
+
+@app.post("/api/v1/verify_email")
+async def verify_email(
+    request: VerifyEmailRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    email_verification_service: Annotated[
+        EmailVerificationService, Depends(get_email_verification_service)
+    ],
+):
+    await email_verification_service.verifiy(current_user, request.code)
+
+
 class RefreshTokenRequest(BaseModel):
     refreshToken: str
 
