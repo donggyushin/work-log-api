@@ -1,10 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from src.domain.entities.email_verification_code import EmailVerificationCode
 from src.domain.entities.user import User
+from src.domain.exceptions import ExpiredError, NotCorrectError, NotFoundError
 from src.domain.interfaces.email_sender import EmailSender
 from src.domain.interfaces.email_verification_code_repository import (
     EmailVerificationCodeRepository,
 )
+from src.domain.interfaces.user_repository import UserRepository
 from src.domain.interfaces.verification_code_generator import VerificationCodeGenerator
 
 
@@ -14,12 +16,31 @@ class EmailVerificationService:
         email_sender: EmailSender,
         verification_code_generator: VerificationCodeGenerator,
         email_verification_code_repository: EmailVerificationCodeRepository,
+        user_repository: UserRepository,
     ):
         self.email_sender = email_sender
         self.verification_code_generator = verification_code_generator
         self.email_verification_code_repository = email_verification_code_repository
+        self.user_repository = user_repository
 
-    async def send_verification_code(self, user: User) -> str:
+    async def verifiy(self, user: User, code: str):
+        verification_code = (
+            await self.email_verification_code_repository.find_by_user_id(user.id)
+        )
+        if verification_code is None:
+            raise NotFoundError()
+
+        if verification_code.code != code:
+            raise NotCorrectError()
+
+        if verification_code.expired_at < datetime.now():
+            raise ExpiredError()
+
+        user.email_verified = True
+        await self.user_repository.update(user)
+        await self.email_verification_code_repository.delete(verification_code)
+
+    async def send_verification_code(self, user: User):
         """
         Send verification code to user's email
 
@@ -34,7 +55,7 @@ class EmailVerificationService:
             user_id=user.id,
             email=user.email,
             code=self.verification_code_generator.generate(),
-            expired_at=datetime.now(),
+            expired_at=datetime.now() + timedelta(minutes=5),
         )
 
         await self.email_verification_code_repository.create(code)
@@ -105,5 +126,3 @@ class EmailVerificationService:
             title="Daily Log - 이메일 인증 코드",
             contents=html_content,
         )
-
-        return verification_code

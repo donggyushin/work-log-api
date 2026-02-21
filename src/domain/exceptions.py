@@ -23,3 +23,18 @@ class UserNotFoundError(DomainException):
 class PasswordNotCorrectError(DomainException):
     def __init__(self):
         super().__init__("Password Not Correct")
+
+
+class NotFoundError(DomainException):
+    def __init__(self):
+        super().__init__("Not Found Error")
+
+
+class NotCorrectError(DomainException):
+    def __init__(self):
+        super().__init__("Not Correct Error")
+
+
+class ExpiredError(DomainException):
+    def __init__(self):
+        super().__init__("ExpiredError")
