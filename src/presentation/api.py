@@ -5,7 +5,11 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
 from src.domain.entities.user import User
-from src.domain.exceptions import EmailAlreadyExistsError, PasswordLengthNotEnoughError
+from src.domain.exceptions import (
+    EmailAlreadyExistsError,
+    NotCorrectError,
+    PasswordLengthNotEnoughError,
+)
 from src.domain.services.auth_service import AuthService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.database import connect_to_mongo, close_mongo_connection
@@ -96,7 +100,13 @@ async def verify_email(
         EmailVerificationService, Depends(get_email_verification_service)
     ],
 ):
-    await email_verification_service.verifiy(current_user, request.code)
+    try:
+        await email_verification_service.verifiy(current_user, request.code)
+    except NotCorrectError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="유효하지 않은 인증번호입니다.",
+        )
 
 
 class RefreshTokenRequest(BaseModel):
