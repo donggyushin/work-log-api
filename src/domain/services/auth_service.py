@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Optional
 from src.domain.entities.user import User
 from src.domain.exceptions import (
-    AccessTokenExpiredError,
     EmailAlreadyExistsError,
     ExpiredError,
     NonAuthorizedError,
