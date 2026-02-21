@@ -38,3 +38,13 @@ class NotCorrectError(DomainException):
 class ExpiredError(DomainException):
     def __init__(self):
         super().__init__("ExpiredError")
+
+
+class NonAuthorizedError(DomainException):
+    def __init__(self):
+        super().__init__("Non Authorized Error")
+
+
+class AccessTokenExpiredError(DomainException):
+    def __init__(self):
+        super().__init__("AccessTokenExpiredError")

@@ -76,5 +76,7 @@ async def send_email_verification_code(
     email_verification_service: Annotated[
         EmailVerificationService, Depends(get_email_verification_service)
     ],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ):
+    # header 로 부터 bearer token(accessToken) 을 받아야함
     pass
