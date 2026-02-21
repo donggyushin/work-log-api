@@ -32,3 +32,6 @@ class MongoEmailVerificationCodeRepository(EmailVerificationCodeRepository):
 
     async def delete(self, verification_code: EmailVerificationCode):
         await self.collection.delete_one({"_id": ObjectId(verification_code.id)})
+
+    async def delete_by_user_id(self, user_id: str):
+        await self.collection.delete_many({"user_id": user_id})

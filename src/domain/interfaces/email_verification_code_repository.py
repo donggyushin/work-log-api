@@ -18,3 +18,7 @@ class EmailVerificationCodeRepository(ABC):
     @abstractmethod
     async def delete(self, verification_code: EmailVerificationCode):
         pass
+
+    @abstractmethod
+    async def delete_by_user_id(self, user_id: str):
+        pass
