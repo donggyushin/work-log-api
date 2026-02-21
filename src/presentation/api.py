@@ -38,14 +38,14 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=10, description="User password")
 
 
-class RegisterResponse(BaseModel):
+class AuthTokenResponse(BaseModel):
     accessToken: str
     refreshToken: str
 
 
 @app.post(
     "/api/v1/register",
-    response_model=RegisterResponse,
+    response_model=AuthTokenResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def register(
@@ -57,20 +57,20 @@ async def register(
         tokens = await auth_service.register(
             email=request.email, password=request.password
         )
-        return RegisterResponse(**tokens)
+        return AuthTokenResponse(**tokens)
     except EmailAlreadyExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except PasswordLengthNotEnoughError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@app.post("/api/v1/login", response_model=RegisterResponse)
+@app.post("/api/v1/login", response_model=AuthTokenResponse)
 async def login(
     request: RegisterRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ):
     token = await auth_service.login(request.email, request.password)
-    return RegisterResponse(**token)
+    return AuthTokenResponse(**token)
 
 
 @app.post("/api/v1/email_verification_code", status_code=status.HTTP_200_OK)
