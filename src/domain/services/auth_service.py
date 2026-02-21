@@ -32,20 +32,6 @@ class AuthService:
         self.hasher = hasher
         self.refresh_token_repository = refresh_token_repository
 
-    async def find_user_by_token(self, access_token: str) -> User:
-        payload = self.jwt_provider.verify_token(access_token)
-        user_id = payload["user_id"]
-        exp: datetime = payload["exp"]
-
-        if exp < datetime.now():
-            raise AccessTokenExpiredError()
-
-        user = await self.user_repository.find_by_id(user_id)
-
-        if user is None:
-            raise UserNotFoundError()
-        return user
-
     async def refresh_token(self, user_id: str, refresh_token: str) -> dict:
         tokens = await self.refresh_token_repository.find_tokens_by_user_id(user_id)
 

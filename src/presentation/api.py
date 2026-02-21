@@ -4,12 +4,14 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
+from src.domain.entities.user import User
 from src.domain.exceptions import EmailAlreadyExistsError, PasswordLengthNotEnoughError
 from src.domain.services.auth_service import AuthService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.database import connect_to_mongo, close_mongo_connection
 from src.presentation.dependencies import (
     get_auth_service,
+    get_current_user,
     get_email_verification_service,
 )
 
@@ -71,12 +73,13 @@ async def login(
     return RegisterResponse(**token)
 
 
-@app.post("/api/v1/email_verification_code")
+@app.post("/api/v1/email_verification_code", status_code=status.HTTP_200_OK)
 async def send_email_verification_code(
+    current_user: Annotated[User, Depends(get_current_user)],
     email_verification_service: Annotated[
         EmailVerificationService, Depends(get_email_verification_service)
     ],
-    auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ):
-    # header 로 부터 bearer token(accessToken) 을 받아야함
-    pass
+    """Send email verification code to current user's email"""
+    await email_verification_service.send_verification_code(current_user)
+    return {"message": "Verification code sent successfully"}

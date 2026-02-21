@@ -2,8 +2,10 @@ import os
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
+from src.domain.entities.user import User
 from src.domain.interfaces.email_sender import EmailSender
 from src.domain.interfaces.email_verification_code_repository import (
     EmailVerificationCodeRepository,
@@ -112,3 +114,57 @@ def get_email_verification_service(
         email_verification_code_repository,
         user_repository,
     )
+
+
+# HTTPBearer security scheme
+security = HTTPBearer()
+
+
+async def get_current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    jwt_provider: Annotated[JWTProvider, Depends(get_jwt_provider)],
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+) -> User:
+    """
+    Extract and verify JWT token from Authorization header, return current user
+
+    Args:
+        credentials: HTTP Bearer token from Authorization header
+        jwt_provider: JWT provider for token verification
+        user_repository: User repository for fetching user data
+
+    Returns:
+        User: Current authenticated user
+
+    Raises:
+        HTTPException: If token is invalid or user not found
+    """
+    token = credentials.credentials
+
+    try:
+        # Verify JWT and extract payload
+        payload = jwt_provider.verify_token(token)
+        user_id: str = payload.get("user_id")
+
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token: user_id not found in payload",
+            )
+
+        # Fetch user from database
+        user = await user_repository.find_by_id(user_id)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+            )
+
+        return user
+
+    except Exception as e:
+        # JWT verification failed or other errors
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid authentication credentials: {str(e)}",
+        )
