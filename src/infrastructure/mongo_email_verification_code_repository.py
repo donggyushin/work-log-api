@@ -19,6 +19,8 @@ class MongoEmailVerificationCodeRepository(EmailVerificationCodeRepository):
         if result is None:
             return None
 
+        result["id"] = str(result.pop("_id"))
+
         return EmailVerificationCode(**result)
 
     async def create(
