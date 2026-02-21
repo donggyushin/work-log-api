@@ -15,7 +15,11 @@ class MongoEmailVerificationCodeRepository(EmailVerificationCodeRepository):
         ]
 
     async def find_by_user_id(self, user_id: str) -> Optional[EmailVerificationCode]:
-        return await super().find_by_user_id(user_id)
+        result = await self.collection.find_one({"user_id": user_id})
+        if result is None:
+            return None
+
+        return EmailVerificationCode(**result)
 
     async def create(
         self, verification_code: EmailVerificationCode
