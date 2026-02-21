@@ -8,6 +8,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from src.domain.entities.user import User
 from src.domain.interfaces.ai_chat_bot import AIChatBot
 from src.domain.interfaces.chat_repository import ChatRepository
+from src.domain.interfaces.diary_repository import DiaryRepository
 from src.domain.interfaces.email_sender import EmailSender
 from src.domain.interfaces.email_verification_code_repository import (
     EmailVerificationCodeRepository,
@@ -23,6 +24,7 @@ from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
 from src.infrastructure.bcrypt_hasher import BcryptHasher
 from src.infrastructure.database import get_database
 from src.infrastructure.mongo_chat_repository import MongoChatRepository
+from src.infrastructure.mongo_diary_repository import MongoDiaryRepository
 from src.infrastructure.mongo_email_verification_code_repository import (
     MongoEmailVerificationCodeRepository,
 )
@@ -44,6 +46,12 @@ def get_db() -> AsyncIOMotorDatabase:
             detail="Database connection not available",
         )
     return db
+
+
+def get_diary_repository(
+    db: Annotated[AsyncIOMotorDatabase, Depends(get_db)],
+) -> DiaryRepository:
+    return MongoDiaryRepository(db.client)
 
 
 def get_user_repository(
