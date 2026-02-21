@@ -7,6 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from src.domain.entities.user import User
 from src.domain.interfaces.ai_chat_bot import AIChatBot
+from src.domain.interfaces.chat_repository import ChatRepository
 from src.domain.interfaces.email_sender import EmailSender
 from src.domain.interfaces.email_verification_code_repository import (
     EmailVerificationCodeRepository,
@@ -21,6 +22,7 @@ from src.domain.services.email_verification_service import EmailVerificationServ
 from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
 from src.infrastructure.bcrypt_hasher import BcryptHasher
 from src.infrastructure.database import get_database
+from src.infrastructure.mongo_chat_repository import MongoChatRepository
 from src.infrastructure.mongo_email_verification_code_repository import (
     MongoEmailVerificationCodeRepository,
 )
@@ -62,6 +64,12 @@ def get_email_verification_code_repository(
     db: Annotated[AsyncIOMotorDatabase, Depends(get_db)],
 ) -> EmailVerificationCodeRepository:
     return MongoEmailVerificationCodeRepository(db.client)
+
+
+def get_chat_repository(
+    db: Annotated[AsyncIOMotorDatabase, Depends(get_db)],
+) -> ChatRepository:
+    return MongoChatRepository(db.client)
 
 
 def get_hasher() -> Hasher:
