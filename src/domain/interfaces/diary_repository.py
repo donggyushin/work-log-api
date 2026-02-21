@@ -19,5 +19,7 @@ class DiaryRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_diary_list(self, cursor_id: Optional[str], size: int) -> List[Diary]:
+    async def get_diary_list(
+        self, user_id: str, cursor_id: Optional[str], size: int
+    ) -> List[Diary]:
         pass

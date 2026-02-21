@@ -36,8 +36,11 @@ class MongoDiaryRepository(DiaryRepository):
         result["id"] = str(result.pop("_id"))
         return Diary(**result)
 
-    async def get_diary_list(self, cursor_id: Optional[str], size: int) -> List[Diary]:
-        query = {}
+    async def get_diary_list(
+        self, user_id: str, cursor_id: Optional[str], size: int
+    ) -> List[Diary]:
+        # 해당 사용자의 일기만 조회
+        query: dict = {"user_id": user_id}
 
         # cursor_id가 있으면 해당 일기의 날짜보다 오래된 일기들만 조회
         if cursor_id:
