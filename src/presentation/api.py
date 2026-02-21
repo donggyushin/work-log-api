@@ -1,11 +1,12 @@
 from contextlib import asynccontextmanager
-from typing import Annotated
+from typing import Annotated, List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from src.domain.entities.chat import ChatSession
+from src.domain.entities.diary import Diary
 from src.domain.entities.user import User
 from src.domain.exceptions import (
     EmailAlreadyExistsError,
@@ -70,6 +71,21 @@ async def get_current_chat_session(
 ):
     current_session = await diary_service.get_chat_session(current_user)
     return current_session
+
+
+@app.get("/api/v1/diaries", response_model=List[Diary], status_code=status.HTTP_200_OK)
+async def get_diary_list(
+    current_user: Annotated[User, Depends(get_current_user)],
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)],
+    cursor_id: Annotated[
+        Optional[str], Query(description="Cursor ID for pagination")
+    ] = None,
+    size: Annotated[
+        int, Query(ge=1, le=100, description="Number of diaries to fetch")
+    ] = 30,
+):
+    diaries = await diary_service.get_diary_list(current_user, cursor_id, size)
+    return diaries
 
 
 class RegisterRequest(BaseModel):
