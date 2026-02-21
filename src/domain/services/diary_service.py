@@ -67,10 +67,6 @@ class DiaryService:
             - 바꿔 말하면 행복한 사람을 행복하게 할 수는 없고 불행한 사람을 불행하게 할 수는 없다는 거야. 물론 자네는 더 행복하다거나 더 불행하다는 말이 있다고 하겠지. 그래. 그런 말이 있네. 하 지만 그건 공허한 말이야. 어떤 행복한 사람에게 무엇이 주어져서 더 행복해졌다면, 그에게서 그것을 박탈하면 다시 행복해질까? 아니지. 그 사람은 불행해질 거야. 반대로 어떤 불행한 사람 에게 어떤 짐이 주어져서 더 불행해졌다면, 그것이 제거되면 다시 불행해질까? 글쎄. 아마 행복을 느낄 거야.
             - 따라서 사람의 마음속엔 행복의 눈금 같은 것은 없다는 거지. 찬 잔은 비울 수 있을 뿐이고 빈 잔은 채울 수 있을 뿐이야. 둘 중 하나일 뿐이야. 마찬가지로 행복한 이는 불행하게 할 수 있고 불행한 이는 행복하게 할 수 있다는 거지. 그러니 행복의 근원은 불행이야. 물론 불행의 근원은 행복이고!
 
-            
-            첫 메시지는 당신이 먼저 보내주세요. 첫 대화를 이끌어내줄 수 있는 어떤 인사말이라도 괜찮습니다. 가령, 예를 들면 다음과 같이 대화를 시작할 수 있겠죠?
-            "안녕하세요, 오늘 어떤 하루를 보냈는지 저에게 들려주시겠어요?"
-
             유저가 답변을 하면, 유저의 그날 하루 일기를 써주기 위해서 필요한 더욱 충분한 정보를 이끌어내기 위한 자연스러운 대화를 이끌어주세요.
             
             만약, 당신이 유저와의 대화를 통해서 충분한 정보를 얻어서 좋은 일기를 작성할 준비가 되면 유저에게 "오늘 하루 있었던 일로 일기를 작성해드릴까요?" 라고 질문해주세요. 
@@ -86,9 +82,16 @@ class DiaryService:
             """,
         )
 
-        new_session = ChatSession(id="", user_id=user.id, messages=[system_prompt])
-        ai_first_message = await self.ai_chat_bot.send(new_session)
-        new_session.messages.append(ai_first_message)
+        first_message = ChatMessage(
+            id=str(ObjectId()),
+            user_id=user.id,
+            role=MessageRole.assistant,
+            content="안녕하세요, 오늘 어떤 하루를 보냈는지 저에게 들려주시겠어요?",
+        )
+
+        new_session = ChatSession(
+            id="", user_id=user.id, messages=[system_prompt, first_message]
+        )
 
         new_session = await self.chat_repository.create_session(new_session)
         return new_session

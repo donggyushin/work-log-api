@@ -11,7 +11,7 @@ class MongoChatRepository(ChatRepository):
         self.collection: AsyncIOMotorCollection = db_client[db_name]["chats"]
 
     async def create_session(self, session: ChatSession) -> ChatSession:
-        dict = session.model_dump(exclude={"id"})
+        dict = session.model_dump(mode="json", exclude={"id"})
         result = await self.collection.insert_one(dict)
         session.id = str(result.inserted_id)
         return session

@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
+from src.domain.entities.chat import ChatSession
 from src.domain.entities.user import User
 from src.domain.exceptions import (
     EmailAlreadyExistsError,
@@ -15,11 +16,13 @@ from src.domain.exceptions import (
     UserNotFoundError,
 )
 from src.domain.services.auth_service import AuthService
+from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.database import connect_to_mongo, close_mongo_connection
 from src.presentation.dependencies import (
     get_auth_service,
     get_current_user,
+    get_diary_service,
     get_email_verification_service,
 )
 
@@ -44,6 +47,19 @@ async def hello():
 @app.get("/api/v1/me")
 async def get_me(current_user: Annotated[User, Depends(get_current_user)]) -> User:
     return current_user
+
+
+@app.get(
+    "/api/v1/chat-current-session",
+    response_model=ChatSession,
+    status_code=status.HTTP_200_OK,
+)
+async def get_current_chat_session(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    current_session = await diary_service.get_chat_session(current_user)
+    return current_session
 
 
 class RegisterRequest(BaseModel):
