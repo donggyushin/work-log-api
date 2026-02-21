@@ -29,7 +29,7 @@ class DiaryService:
         return await self.diary_repository.get_diary_list(user.id, cursor_id, size)
 
     async def get_chat_session(self, user: User) -> ChatSession:
-        active_session = await self.chat_repository.find_active_session()
+        active_session = await self.chat_repository.find_active_session(user.id)
 
         if active_session:
             return active_session

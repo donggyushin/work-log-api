@@ -10,7 +10,7 @@ class ChatRepository(ABC):
         pass
 
     @abstractmethod
-    async def find_active_session(self) -> Optional[ChatSession]:
+    async def find_active_session(self, user_id: str) -> Optional[ChatSession]:
         pass
 
     @abstractmethod

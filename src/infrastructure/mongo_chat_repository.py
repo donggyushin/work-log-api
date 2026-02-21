@@ -16,8 +16,8 @@ class MongoChatRepository(ChatRepository):
         session.id = str(result.inserted_id)
         return session
 
-    async def find_active_session(self) -> Optional[ChatSession]:
-        result = await self.collection.find_one({"active": True})
+    async def find_active_session(self, user_id: str) -> Optional[ChatSession]:
+        result = await self.collection.find_one({"active": True, "user_id": user_id})
 
         if result is None:
             return None
