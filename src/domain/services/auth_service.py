@@ -43,7 +43,7 @@ class AuthService:
         if tokens.__contains__(refresh_token) is False:
             raise NotFoundError()
 
-        await self.refresh_token_repository.delete(refresh_token)
+        await self.refresh_token_repository.delete_by_user_id(user_id)
 
         access_token = self.jwt_provider.generate_access_token(user_id)
         refresh_token = self.jwt_provider.generate_refresh_token(user_id)
@@ -65,10 +65,7 @@ class AuthService:
         if is_password_correct is False:
             raise PasswordNotCorrectError()
 
-        tokens = await self.refresh_token_repository.find_tokens_by_user_id(user.id)
-
-        for token in tokens:
-            await self.refresh_token_repository.delete(token)
+        await self.refresh_token_repository.delete_by_user_id(user.id)
 
         access_token = self.jwt_provider.generate_access_token(user.id)
         refresh_token = self.jwt_provider.generate_refresh_token(user.id)
