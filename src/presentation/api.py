@@ -1,7 +1,6 @@
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from anthropic import NotFoundError
 from fastapi import Depends, FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
@@ -10,6 +9,7 @@ from src.domain.exceptions import (
     EmailAlreadyExistsError,
     ExpiredError,
     NotCorrectError,
+    NotFoundError,
     PasswordLengthNotEnoughError,
 )
 from src.domain.services.auth_service import AuthService
