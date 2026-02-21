@@ -82,4 +82,3 @@ async def send_email_verification_code(
 ):
     """Send email verification code to current user's email"""
     await email_verification_service.send_verification_code(current_user)
-    return {"message": "Verification code sent successfully"}
