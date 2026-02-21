@@ -12,11 +12,83 @@ class EmailVerificationService:
         self.email_sender = email_sender
         self.verification_code_generator = verification_code_generator
 
-    async def send_verification_code(self, user: User):
-        random_code = self.verification_code_generator.generate()
+    async def send_verification_code(self, user: User) -> str:
+        """
+        Send verification code to user's email
+
+        Args:
+            user: User entity containing email address
+
+        Returns:
+            Generated verification code (for saving to repository)
+        """
+        verification_code = self.verification_code_generator.generate()
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+                <tr>
+                    <td align="center">
+                        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+                            <!-- Header -->
+                            <tr>
+                                <td style="background-color: #4F46E5; padding: 40px 20px; text-align: center;">
+                                    <h1 style="color: #ffffff; margin: 0; font-size: 28px;">이메일 인증</h1>
+                                </td>
+                            </tr>
+
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <p style="color: #333333; font-size: 16px; line-height: 24px; margin: 0 0 20px 0;">
+                                        안녕하세요,
+                                    </p>
+                                    <p style="color: #333333; font-size: 16px; line-height: 24px; margin: 0 0 30px 0;">
+                                        아래 인증 코드를 입력하여 이메일 인증을 완료해주세요.
+                                    </p>
+
+                                    <!-- Verification Code Box -->
+                                    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px; text-align: center; margin: 30px 0;">
+                                        <p style="color: #666666; font-size: 14px; margin: 0 0 10px 0;">인증 코드</p>
+                                        <p style="color: #4F46E5; font-size: 36px; font-weight: bold; letter-spacing: 8px; margin: 0;">
+                                            {verification_code}
+                                        </p>
+                                    </div>
+
+                                    <p style="color: #666666; font-size: 14px; line-height: 20px; margin: 30px 0 0 0;">
+                                        이 코드는 <strong>10분 동안</strong> 유효합니다.<br>
+                                        본인이 요청하지 않았다면 이 메일을 무시해주세요.
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+                                    <p style="color: #999999; font-size: 12px; margin: 0;">
+                                        이 메일은 발신 전용입니다. 문의사항은 고객센터를 이용해주세요.
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+        """
+
         await self.email_sender.send_email(
-            sender="i need sender email",
+            sender="onboarding@resend.dev",  # Resend test email (free to use)
             to=user.email,
-            title="Verify Email",
-            contents=f"I need HTML code using {random_code}",
+            title="Daily Log - 이메일 인증 코드",
+            contents=html_content,
         )
+
+        return verification_code
