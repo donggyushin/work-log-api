@@ -1,5 +1,5 @@
 import os
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -144,7 +144,7 @@ async def get_current_user(
     try:
         # Verify JWT and extract payload
         payload = jwt_provider.verify_token(token)
-        user_id: str = payload.get("user_id")
+        user_id: Optional[str] = payload.get("user_id")
 
         if user_id is None:
             raise HTTPException(
