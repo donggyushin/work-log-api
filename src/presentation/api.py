@@ -11,6 +11,8 @@ from src.domain.exceptions import (
     NotCorrectError,
     NotFoundError,
     PasswordLengthNotEnoughError,
+    PasswordNotCorrectError,
+    UserNotFoundError,
 )
 from src.domain.services.auth_service import AuthService
 from src.domain.services.email_verification_service import EmailVerificationService
@@ -75,8 +77,17 @@ async def login(
     request: RegisterRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ):
-    token = await auth_service.login(request.email, request.password)
-    return AuthTokenResponse(**token)
+    try:
+        token = await auth_service.login(request.email, request.password)
+        return AuthTokenResponse(**token)
+    except UserNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="유효하지 않은 정보입니다."
+        )
+    except PasswordNotCorrectError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="유효하지 않은 정보입니다."
+        )
 
 
 @app.post("/api/v1/email_verification_code", status_code=status.HTTP_200_OK)
