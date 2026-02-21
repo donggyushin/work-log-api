@@ -35,3 +35,6 @@ class MongoDiaryRepository(DiaryRepository):
 
         result["id"] = str(result.pop("_id"))
         return Diary(**result)
+
+    async def get_diary_list(self, cursor_id: Optional[str], size: int) -> List[Diary]:
+        return []
