@@ -43,14 +43,6 @@ class AuthService:
         if tokens.__contains__(refresh_token) is False:
             raise NotFoundError()
 
-        exp: Optional[datetime] = payload.get("exp")
-
-        if exp is None:
-            raise NonAuthorizedError()
-
-        if exp < datetime.now():
-            raise ExpiredError()
-
         await self.refresh_token_repository.delete(refresh_token)
 
         access_token = self.jwt_provider.generate_access_token(user_id)
