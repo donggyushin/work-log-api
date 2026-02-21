@@ -3,6 +3,7 @@ from typing import Optional
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
 from src.domain.entities.chat import ChatMessage, ChatSession
+from src.domain.exceptions import NotFoundError
 from src.domain.interfaces.chat_repository import ChatRepository
 
 
@@ -16,8 +17,8 @@ class MongoChatRepository(ChatRepository):
         session.id = str(result.inserted_id)
         return session
 
-    async def find_active_session(self) -> Optional[ChatSession]:
-        result = await self.collection.find_one({"active": True})
+    async def find_active_session(self, user_id: str) -> Optional[ChatSession]:
+        result = await self.collection.find_one({"active": True, "user_id": user_id})
 
         if result is None:
             return None
@@ -43,3 +44,25 @@ class MongoChatRepository(ChatRepository):
         await self.collection.update_one(
             {"_id": ObjectId(session.id)}, {"$set": {"active": False}}
         )
+
+    async def find_session(self, session_id: str) -> ChatSession:
+        result = await self.collection.find_one({"_id": ObjectId(session_id)})
+
+        if result is None:
+            raise NotFoundError()
+
+        result["id"] = str(result.pop("_id"))
+
+        return ChatSession(**result)
+
+    async def find_message(self, session_id: str, message_id: str) -> ChatMessage:
+        found_session = await self.find_session(session_id)
+
+        found_message = next(
+            (msg for msg in found_session.messages if msg.id == message_id), None
+        )
+
+        if found_message:
+            return found_message
+        else:
+            raise NotFoundError()

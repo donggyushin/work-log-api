@@ -29,7 +29,7 @@ class DiaryService:
         return await self.diary_repository.get_diary_list(user.id, cursor_id, size)
 
     async def get_chat_session(self, user: User) -> ChatSession:
-        active_session = await self.chat_repository.find_active_session()
+        active_session = await self.chat_repository.find_active_session(user.id)
 
         if active_session:
             return active_session
@@ -114,9 +114,9 @@ class DiaryService:
         await self.chat_repository.add_message(session, reply)
         return reply
 
-    async def write_diary(
-        self, chat_session: ChatSession, target_message: ChatMessage
-    ) -> Diary:
+    async def write_diary(self, session_id: str, message_id: str) -> Diary:
+        target_message = await self.chat_repository.find_message(session_id, message_id)
+
         # AI 응답에서 title과 content 추출
         content_text = target_message.content
 
@@ -133,8 +133,8 @@ class DiaryService:
         content = content_match.group(1).strip() if content_match else content_text
 
         diary = Diary(
-            user_id=chat_session.user_id,
-            chat_session_id=chat_session.id,
+            user_id=target_message.user_id,
+            chat_session_id=session_id,
             title=title,
             content=content,
             thumbnail_url=None,
