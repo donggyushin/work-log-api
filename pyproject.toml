@@ -10,5 +10,7 @@ dependencies = [
     "motor>=3.7.1",
     "pydantic>=2.12.5",
     "pyjwt>=2.11.0",
+    "resend>=2.22.0",
+    "sendgrid>=6.12.5",
     "uvicorn>=0.32.0",
 ]

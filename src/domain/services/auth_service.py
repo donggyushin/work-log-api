@@ -1,6 +1,11 @@
+from datetime import datetime
+from typing import Optional
 from src.domain.entities.user import User
 from src.domain.exceptions import (
     EmailAlreadyExistsError,
+    ExpiredError,
+    NonAuthorizedError,
+    NotFoundError,
     PasswordLengthNotEnoughError,
     PasswordNotCorrectError,
     UserNotFoundError,
@@ -25,6 +30,27 @@ class AuthService:
         self.jwt_provider = jwt_provider
         self.hasher = hasher
         self.refresh_token_repository = refresh_token_repository
+
+    async def refresh_token(self, refresh_token: str) -> dict:
+        payload = self.jwt_provider.verify_token(refresh_token)
+        user_id: Optional[str] = payload.get("user_id")
+
+        if user_id is None:
+            raise UserNotFoundError()
+
+        tokens = await self.refresh_token_repository.find_tokens_by_user_id(user_id)
+
+        if tokens.__contains__(refresh_token) is False:
+            raise NotFoundError()
+
+        await self.refresh_token_repository.delete(refresh_token)
+
+        access_token = self.jwt_provider.generate_access_token(user_id)
+        refresh_token = self.jwt_provider.generate_refresh_token(user_id)
+
+        result = {"accessToken": access_token, "refreshToken": refresh_token}
+
+        return result
 
     async def login(self, email: str, password: str) -> dict:
         user = await self.user_repository.find_by_email(email)
