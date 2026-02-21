@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 
 from src.domain.entities.chat import ChatMessage, ChatSession, MessageRole
 from src.domain.interfaces.ai_chat_bot import AIChatBot
@@ -31,13 +32,13 @@ class AnthropicAIChatBot(AIChatBot):
                 )
 
         # system 메시지가 여러 개면 합치기
-        system_prompt = "\n\n".join(system_messages) if system_messages else None
+        system_prompt = "\n\n".join(system_messages)
 
         # Anthropic API 호출
         response = await self.client.messages.create(
             model=self.model,
             max_tokens=8192,
-            system=system_prompt if system_prompt else None,
+            system=system_prompt,
             messages=conversation_messages,
         )
 
@@ -53,7 +54,11 @@ class AnthropicAIChatBot(AIChatBot):
         )
 
         # Anthropic 응답에서 텍스트 추출
-        assistant_content = response.content[0].text
+        assistant_content = ""
+        for item in response.content:
+            if isinstance(item, TextBlock):
+                assistant_content = item.text
+                break
 
         return ChatMessage(
             id=response.id,
