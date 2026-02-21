@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 from anthropic import AsyncAnthropic
-from anthropic.types import TextBlock
+from anthropic.types import MessageParam, TextBlock
 
 from src.domain.entities.chat import ChatMessage, ChatSession, MessageRole
 from src.domain.interfaces.ai_chat_bot import AIChatBot
@@ -18,8 +18,8 @@ class AnthropicAIChatBot(AIChatBot):
 
     async def send(self, chat: ChatSession) -> ChatMessage:
         # ChatSession의 메시지를 Anthropic API 형식으로 변환
-        system_messages = []
-        conversation_messages = []
+        system_messages: list[str] = []
+        conversation_messages: list[MessageParam] = []
 
         for msg in chat.messages:
             if msg.role == MessageRole.system:

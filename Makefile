@@ -46,3 +46,9 @@ clean:
 # MongoDB 쉘 접속
 mongo-shell:
 	@docker exec -it work-log-mongodb mongosh -u $${MONGO_INITDB_ROOT_USERNAME:-admin} -p $${MONGO_INITDB_ROOT_PASSWORD:-password123}
+
+# 타입 체크
+typecheck:
+	@echo "🔍 타입 체크 실행 중..."
+	@uv run mypy src/ --pretty
+	@echo "✅ 타입 체크 완료"

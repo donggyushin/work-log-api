@@ -8,6 +8,7 @@ This is a FastAPI-based AI-powered diary/daily log API with MongoDB backend, con
 
 **Core Features:**
 - User authentication (JWT-based with access/refresh tokens)
+- Auto-generated user nicknames (형용사 + 명사 pattern, e.g., "행복한루피")
 - Email verification via Resend
 - AI-powered diary writing using Anthropic Claude (Sonnet 4.5)
 - Conversational diary creation through chat sessions
@@ -37,6 +38,7 @@ make mongo-shell # Access MongoDB shell
 ```bash
 uv sync          # Install/sync dependencies
 uv run main.py   # Run API server locally
+make typecheck   # Run mypy type checking
 ```
 
 ### Service Endpoints
@@ -72,14 +74,14 @@ src/
 
 1. **Dependency Inversion**: Domain layer defines interfaces, infrastructure implements them
    - Repositories: `UserRepository`, `ChatRepository`, `DiaryRepository`, `RefreshTokenRepository`
-   - Providers: `Hasher`, `JWTProvider`, `VerificationCodeGenerator`
+   - Providers: `Hasher`, `JWTProvider`, `VerificationCodeGenerator`, `RandomNameGenerator`
    - External services: `AIChatBot`, `EmailSender`
 2. **Repository Pattern**: Data access abstracted via repository interfaces
    - MongoDB `_id` ↔ entity `id` conversion happens in repositories
    - Use `model_dump(exclude={"id"})` when inserting, convert `_id` to `id` string when reading
    - Subdocuments in arrays (e.g., messages in ChatSession) get `ObjectId()` generated explicitly
 3. **Service Layer**: Business logic in services, depends only on domain interfaces
-   - `AuthService`: User registration, login, token refresh
+   - `AuthService`: User registration (with auto-generated nicknames), login, token refresh
    - `EmailVerificationService`: Send/verify email codes
    - `DiaryService`: AI chat session management, diary generation
 4. **Domain Exceptions**: Business rule violations raise domain exceptions (`EmailAlreadyExistsError`, `NotFoundError`, `ExpiredError`)
@@ -128,11 +130,35 @@ Volume mounts for development:
 ## CI/CD
 
 GitHub Actions workflow (`.github/workflows/ci.yml`) runs on pushes/PRs to `main`:
-1. Creates test environment with `.env` file
-2. Starts Docker containers via `make up`
-3. Verifies all three containers are running
-4. Tests API endpoint (`/api/v1`) returns expected response
-5. Outputs container logs on failure
+1. **Type Check Job**: Runs mypy type checking first to catch type errors early
+2. **Docker Test Job** (runs after type check passes):
+   - Creates test environment with `.env` file
+   - Starts Docker containers via `make up`
+   - Verifies all three containers are running
+   - Tests API endpoint (`/api/v1`) returns expected response
+   - Outputs container logs on failure
+
+## Type Checking
+
+The project uses **mypy** for static type checking to catch errors before runtime:
+
+```bash
+make typecheck              # Run type checking locally
+uv run mypy src/ --pretty   # Direct mypy command
+```
+
+**Configuration** (in `pyproject.toml`):
+- `ignore_missing_imports = true` - External libraries without type stubs are ignored
+- `check_untyped_defs = true` - Check function bodies even without type annotations
+- `no_implicit_optional = true` - Require explicit `Optional[]` for nullable parameters
+- `warn_unreachable = true` - Warn about unreachable code
+
+**When to run:**
+- Before committing code changes
+- After adding new dependencies to services
+- When modifying dependency injection in `dependencies.py`
+
+Type checking runs automatically in CI and will block PRs if errors are found.
 
 ## Environment Variables
 
@@ -160,6 +186,7 @@ When extending this codebase:
 - **API Routes**: Add routes in `src/presentation/api.py` or create new router modules
   - Use `Depends()` for dependency injection from `src/presentation/dependencies.py`
   - Handle domain exceptions with try/except, convert to HTTPException with appropriate status codes
+  - **CRITICAL**: When adding dependencies to a service constructor, ALWAYS update the corresponding factory function in `dependencies.py`. Type checking will catch this mismatch.
 - **Exceptions**: Domain business rule violations raise exceptions from `src/domain/exceptions.py`
   - Common exceptions: `NotFoundError`, `NotCorrectError`, `ExpiredError`, `EmailAlreadyExistsError`
   - Always import domain exceptions, not external library exceptions (e.g., NOT `from anthropic import NotFoundError`)
@@ -176,10 +203,14 @@ When extending this codebase:
 - `EmailVerificationCode`: Temporary verification code with expiration
 
 **Key Services:**
-- `AuthService`: Registration, login, token management
+- `AuthService`: Registration (auto-generates nickname via `RandomNameGenerator`), login, token management
 - `EmailVerificationService`: Send and verify email codes (10-minute expiration)
 - `DiaryService`: Manage chat sessions and generate diaries
   - `get_chat_session()`: Get or create active session with system prompt
   - `send_chat_message()`: User sends message, AI responds
   - `write_diary()`: Parse AI response and save diary
   - `end_chat_session()`: Mark session as inactive
+
+**Infrastructure Implementations:**
+- `FakerRandomNameGenerator`: Uses Faker library to generate random Korean nicknames (형용사 + 명사 combinations like "행복한루피", "용감한펭귄")
+- `AnthropicAIChatBot`: Anthropic Claude integration with proper `MessageParam` typing for type safety

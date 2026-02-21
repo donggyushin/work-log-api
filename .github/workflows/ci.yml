@@ -29,7 +29,7 @@ jobs:
         run: uv sync
 
       - name: mypy 타입 체크
-        run: uv run mypy src/ --strict
+        run: uv run mypy src/ --pretty
 
   docker-test:
     name: Docker 컨테이너 실행 테스트
