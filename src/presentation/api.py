@@ -88,6 +88,19 @@ async def get_diary_list(
     return diaries
 
 
+class WriteDiaryRequest(BaseModel):
+    session_id: str
+    message_id: str
+
+
+@app.post("/api/v1/diary", response_model=Diary, status_code=status.HTTP_200_OK)
+async def write_diary(
+    request: WriteDiaryRequest,
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)],
+):
+    return await diary_service.write_diary(request.session_id, request.message_id)
+
+
 class RegisterRequest(BaseModel):
     email: str = Field(min_length=10, description="User email")
     password: str = Field(min_length=10, description="User password")
