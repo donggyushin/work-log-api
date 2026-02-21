@@ -6,8 +6,12 @@ from pydantic import BaseModel, Field
 
 from src.domain.exceptions import EmailAlreadyExistsError, PasswordLengthNotEnoughError
 from src.domain.services.auth_service import AuthService
+from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.database import connect_to_mongo, close_mongo_connection
-from src.presentation.dependencies import get_auth_service
+from src.presentation.dependencies import (
+    get_auth_service,
+    get_email_verification_service,
+)
 
 
 @asynccontextmanager
@@ -68,5 +72,9 @@ async def login(
 
 
 @app.post("/api/v1/email_verification_code")
-async def send_email_verification_code():
+async def send_email_verification_code(
+    email_verification_service: Annotated[
+        EmailVerificationService, Depends(get_email_verification_service)
+    ],
+):
     pass
