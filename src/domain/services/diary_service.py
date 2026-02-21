@@ -15,7 +15,7 @@ class DiaryService:
         self.chat_repository = chat_repository
         self.ai_chat_bot = ai_chat_bot
 
-    async def start_chat(self) -> ChatSession:
+    async def get_chat_session(self) -> ChatSession:
         active_session = await self.chat_repository.find_active_session()
 
         if active_session:
