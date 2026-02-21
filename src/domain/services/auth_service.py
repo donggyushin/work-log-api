@@ -32,18 +32,22 @@ class AuthService:
         self.hasher = hasher
         self.refresh_token_repository = refresh_token_repository
 
-    async def refresh_token(self, user_id: str, refresh_token: str) -> dict:
+    async def refresh_token(self, refresh_token: str) -> dict:
+        payload = self.jwt_provider.verify_token(refresh_token)
+        user_id: Optional[str] = payload.get("user_id")
+
+        if user_id is None:
+            raise UserNotFoundError()
+
         tokens = await self.refresh_token_repository.find_tokens_by_user_id(user_id)
 
         if tokens.__contains__(refresh_token) is False:
             raise NotFoundError()
 
-        payload = self.jwt_provider.verify_token(refresh_token)
+        exp: Optional[datetime] = payload.get("exp")
 
-        if payload["user_id"] != user_id:
+        if exp is None:
             raise NonAuthorizedError()
-
-        exp: datetime = payload["exp"]
 
         if exp < datetime.now():
             raise ExpiredError()
