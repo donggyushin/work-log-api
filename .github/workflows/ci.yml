@@ -9,9 +9,32 @@ on:
       - main
 
 jobs:
+  type-check:
+    name: 타입 체크
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: uv 설치
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: 의존성 설치
+        run: uv sync
+
+      - name: mypy 타입 체크
+        run: uv run mypy src/ --strict
+
   docker-test:
     name: Docker 컨테이너 실행 테스트
     runs-on: ubuntu-latest
+    needs: type-check
 
     steps:
       # 코드 체크아웃

@@ -113,6 +113,7 @@ def get_auth_service(
     ],
     hasher: Annotated[Hasher, Depends(get_hasher)],
     jwt_provider: Annotated[JWTProvider, Depends(get_jwt_provider)],
+    random_name_generator: Annotated[RandomNameGenerator, Depends(get_random_name_generator)],
 ) -> AuthService:
     """Get auth service instance with all dependencies injected"""
     return AuthService(
@@ -120,6 +121,7 @@ def get_auth_service(
         jwt_provider=jwt_provider,
         hasher=hasher,
         refresh_token_repository=refresh_token_repo,
+        random_name_generator=random_name_generator,
     )
 
 
