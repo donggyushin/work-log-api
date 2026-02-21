@@ -12,7 +12,7 @@ class PyJWTProvider(JWTProvider):
         self,
         secret_key: str,
         algorithm: str = "HS256",
-        access_token_expires_minutes: int = 1,
+        access_token_expires_minutes: int = 15,
         refresh_token_expires_days: int = 15,
     ):
         self.secret_key = secret_key
