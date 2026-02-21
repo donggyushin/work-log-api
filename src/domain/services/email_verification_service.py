@@ -55,7 +55,7 @@ class EmailVerificationService:
             user_id=user.id,
             email=user.email,
             code=self.verification_code_generator.generate(),
-            expired_at=datetime.now() + timedelta(minutes=5),
+            expired_at=datetime.now() + timedelta(minutes=10),
         )
 
         await self.email_verification_code_repository.create(code)
