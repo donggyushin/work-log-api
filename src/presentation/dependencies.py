@@ -15,6 +15,7 @@ from src.domain.interfaces.email_verification_code_repository import (
 )
 from src.domain.interfaces.hasher import Hasher
 from src.domain.interfaces.jwt_provider import JWTProvider
+from src.domain.interfaces.random_name_generator import RandomNameGenerator
 from src.domain.interfaces.refresh_token_repository import RefreshTokenRepository
 from src.domain.interfaces.user_repository import UserRepository
 from src.domain.interfaces.verification_code_generator import VerificationCodeGenerator
@@ -24,6 +25,7 @@ from src.domain.services.email_verification_service import EmailVerificationServ
 from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
 from src.infrastructure.bcrypt_hasher import BcryptHasher
 from src.infrastructure.database import get_database
+from src.infrastructure.faker_random_name_generator import FakerRandomNameGenerator
 from src.infrastructure.mongo_chat_repository import MongoChatRepository
 from src.infrastructure.mongo_diary_repository import MongoDiaryRepository
 from src.infrastructure.mongo_email_verification_code_repository import (
@@ -96,6 +98,10 @@ def get_email_sender() -> EmailSender:
     return ResendEmailSender()
 
 
+def get_random_name_generator() -> RandomNameGenerator:
+    return FakerRandomNameGenerator()
+
+
 def get_verification_code_generator() -> VerificationCodeGenerator:
     return RandomNumberCodeGenerator()
 
@@ -107,6 +113,7 @@ def get_auth_service(
     ],
     hasher: Annotated[Hasher, Depends(get_hasher)],
     jwt_provider: Annotated[JWTProvider, Depends(get_jwt_provider)],
+    random_name_generator: Annotated[RandomNameGenerator, Depends(get_random_name_generator)],
 ) -> AuthService:
     """Get auth service instance with all dependencies injected"""
     return AuthService(
@@ -114,6 +121,7 @@ def get_auth_service(
         jwt_provider=jwt_provider,
         hasher=hasher,
         refresh_token_repository=refresh_token_repo,
+        random_name_generator=random_name_generator,
     )
 
 

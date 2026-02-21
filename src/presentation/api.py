@@ -41,6 +41,11 @@ async def hello():
     return {"message": "hello world"}
 
 
+@app.get("/api/v1/me")
+async def get_me(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    return current_user
+
+
 class RegisterRequest(BaseModel):
     email: str = Field(min_length=10, description="User email")
     password: str = Field(min_length=10, description="User password")

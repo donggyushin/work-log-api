@@ -1,4 +1,4 @@
-.PHONY: help up down restart logs build clean mongo-shell
+.PHONY: help up down restart logs build clean mongo-shell typecheck
 
 # 기본 명령어 (make 입력시 도움말 표시)
 help:
@@ -10,6 +10,7 @@ help:
 	@echo "  make build       - 이미지 새로 빌드"
 	@echo "  make clean       - 컨테이너 및 이미지 전부 삭제"
 	@echo "  make mongo-shell - MongoDB 쉘 접속"
+	@echo "  make typecheck   - 타입 체크 실행 (mypy)"
 
 # 컨테이너 시작
 up:
@@ -45,3 +46,9 @@ clean:
 # MongoDB 쉘 접속
 mongo-shell:
 	@docker exec -it work-log-mongodb mongosh -u $${MONGO_INITDB_ROOT_USERNAME:-admin} -p $${MONGO_INITDB_ROOT_PASSWORD:-password123}
+
+# 타입 체크
+typecheck:
+	@echo "🔍 타입 체크 실행 중..."
+	@uv run mypy src/ --pretty
+	@echo "✅ 타입 체크 완료"
