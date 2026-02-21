@@ -44,6 +44,7 @@ class DiaryService:
     async def write_diary(
         self, chat_session: ChatSession, target_message: ChatMessage
     ) -> Diary:
+        # title, content 제작 로직 필요
         diary = Diary(
             user_id=chat_session.user_id,
             chat_session_id=chat_session.id,

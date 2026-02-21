@@ -19,6 +19,7 @@ from src.domain.interfaces.refresh_token_repository import RefreshTokenRepositor
 from src.domain.interfaces.user_repository import UserRepository
 from src.domain.interfaces.verification_code_generator import VerificationCodeGenerator
 from src.domain.services.auth_service import AuthService
+from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
 from src.infrastructure.bcrypt_hasher import BcryptHasher
@@ -136,6 +137,14 @@ def get_email_verification_service(
 
 def get_ai_chat_bot() -> AIChatBot:
     return AnthropicAIChatBot()
+
+
+def get_diary_service(
+    diary_repository: Annotated[DiaryRepository, Depends(get_diary_repository)],
+    chat_repository: Annotated[ChatRepository, Depends(get_chat_repository)],
+    ai_chat_bot: Annotated[AIChatBot, Depends(get_ai_chat_bot)],
+) -> DiaryService:
+    return DiaryService(diary_repository, chat_repository, ai_chat_bot)
 
 
 # HTTPBearer security scheme
