@@ -1,10 +1,7 @@
-from datetime import datetime
 from typing import Optional
 from src.domain.entities.user import User
 from src.domain.exceptions import (
     EmailAlreadyExistsError,
-    ExpiredError,
-    NonAuthorizedError,
     NotFoundError,
     PasswordLengthNotEnoughError,
     PasswordNotCorrectError,
@@ -47,6 +44,8 @@ class AuthService:
 
         access_token = self.jwt_provider.generate_access_token(user_id)
         refresh_token = self.jwt_provider.generate_refresh_token(user_id)
+
+        await self.refresh_token_repository.create(refresh_token, user_id)
 
         result = {"accessToken": access_token, "refreshToken": refresh_token}
 
