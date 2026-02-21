@@ -21,6 +21,7 @@ class ChatMessage(BaseModel):
 
 class ChatSession(BaseModel):
     id: str = Field()
+    user_id: str = Field()
     active: bool = Field(default=True)
     messages: List[ChatMessage] = Field()
     created_at: datetime = Field(default=datetime.now())

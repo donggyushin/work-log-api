@@ -8,6 +8,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from src.domain.entities.user import User
 from src.domain.interfaces.ai_chat_bot import AIChatBot
 from src.domain.interfaces.chat_repository import ChatRepository
+from src.domain.interfaces.diary_repository import DiaryRepository
 from src.domain.interfaces.email_sender import EmailSender
 from src.domain.interfaces.email_verification_code_repository import (
     EmailVerificationCodeRepository,
@@ -18,11 +19,13 @@ from src.domain.interfaces.refresh_token_repository import RefreshTokenRepositor
 from src.domain.interfaces.user_repository import UserRepository
 from src.domain.interfaces.verification_code_generator import VerificationCodeGenerator
 from src.domain.services.auth_service import AuthService
+from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
 from src.infrastructure.bcrypt_hasher import BcryptHasher
 from src.infrastructure.database import get_database
 from src.infrastructure.mongo_chat_repository import MongoChatRepository
+from src.infrastructure.mongo_diary_repository import MongoDiaryRepository
 from src.infrastructure.mongo_email_verification_code_repository import (
     MongoEmailVerificationCodeRepository,
 )
@@ -44,6 +47,12 @@ def get_db() -> AsyncIOMotorDatabase:
             detail="Database connection not available",
         )
     return db
+
+
+def get_diary_repository(
+    db: Annotated[AsyncIOMotorDatabase, Depends(get_db)],
+) -> DiaryRepository:
+    return MongoDiaryRepository(db.client)
 
 
 def get_user_repository(
@@ -128,6 +137,14 @@ def get_email_verification_service(
 
 def get_ai_chat_bot() -> AIChatBot:
     return AnthropicAIChatBot()
+
+
+def get_diary_service(
+    diary_repository: Annotated[DiaryRepository, Depends(get_diary_repository)],
+    chat_repository: Annotated[ChatRepository, Depends(get_chat_repository)],
+    ai_chat_bot: Annotated[AIChatBot, Depends(get_ai_chat_bot)],
+) -> DiaryService:
+    return DiaryService(diary_repository, chat_repository, ai_chat_bot)
 
 
 # HTTPBearer security scheme
