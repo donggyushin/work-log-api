@@ -5,7 +5,15 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
 from src.domain.entities.user import User
-from src.domain.exceptions import EmailAlreadyExistsError, PasswordLengthNotEnoughError
+from src.domain.exceptions import (
+    EmailAlreadyExistsError,
+    ExpiredError,
+    NotCorrectError,
+    NotFoundError,
+    PasswordLengthNotEnoughError,
+    PasswordNotCorrectError,
+    UserNotFoundError,
+)
 from src.domain.services.auth_service import AuthService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.database import connect_to_mongo, close_mongo_connection
@@ -69,8 +77,17 @@ async def login(
     request: RegisterRequest,
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ):
-    token = await auth_service.login(request.email, request.password)
-    return AuthTokenResponse(**token)
+    try:
+        token = await auth_service.login(request.email, request.password)
+        return AuthTokenResponse(**token)
+    except UserNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="유효하지 않은 정보입니다."
+        )
+    except PasswordNotCorrectError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="유효하지 않은 정보입니다."
+        )
 
 
 @app.post("/api/v1/email_verification_code", status_code=status.HTTP_200_OK)
@@ -82,6 +99,37 @@ async def send_email_verification_code(
 ):
     """Send email verification code to current user's email"""
     await email_verification_service.send_verification_code(current_user)
+
+
+class VerifyEmailRequest(BaseModel):
+    code: str
+
+
+@app.post("/api/v1/verify_email")
+async def verify_email(
+    request: VerifyEmailRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    email_verification_service: Annotated[
+        EmailVerificationService, Depends(get_email_verification_service)
+    ],
+):
+    try:
+        await email_verification_service.verifiy(current_user, request.code)
+    except NotCorrectError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="유효하지 않은 인증번호 입니다.",
+        )
+    except NotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="유효하지 않은 인증번호 입니다.",
+        )
+    except ExpiredError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="유효 기간이 만료 되었습니다.",
+        )
 
 
 class RefreshTokenRequest(BaseModel):

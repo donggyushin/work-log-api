@@ -15,7 +15,13 @@ class MongoEmailVerificationCodeRepository(EmailVerificationCodeRepository):
         ]
 
     async def find_by_user_id(self, user_id: str) -> Optional[EmailVerificationCode]:
-        return await super().find_by_user_id(user_id)
+        result = await self.collection.find_one({"user_id": user_id})
+        if result is None:
+            return None
+
+        result["id"] = str(result.pop("_id"))
+
+        return EmailVerificationCode(**result)
 
     async def create(
         self, verification_code: EmailVerificationCode
@@ -26,3 +32,6 @@ class MongoEmailVerificationCodeRepository(EmailVerificationCodeRepository):
 
     async def delete(self, verification_code: EmailVerificationCode):
         await self.collection.delete_one({"_id": ObjectId(verification_code.id)})
+
+    async def delete_by_user_id(self, user_id: str):
+        await self.collection.delete_many({"user_id": user_id})
