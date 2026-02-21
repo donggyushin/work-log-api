@@ -82,3 +82,21 @@ async def send_email_verification_code(
 ):
     """Send email verification code to current user's email"""
     await email_verification_service.send_verification_code(current_user)
+
+
+class RefreshTokenRequest(BaseModel):
+    refreshToken: str
+
+
+@app.post(
+    "/api/v1/refresh_token",
+    status_code=status.HTTP_200_OK,
+    response_model=AuthTokenResponse,
+)
+async def refresh_token(
+    request: RefreshTokenRequest,
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+):
+    result = await auth_service.refresh_token(request.refreshToken)
+
+    return AuthTokenResponse(**result)
