@@ -1,5 +1,10 @@
+from datetime import datetime
+from src.domain.entities.email_verification_code import EmailVerificationCode
 from src.domain.entities.user import User
 from src.domain.interfaces.email_sender import EmailSender
+from src.domain.interfaces.email_verification_code_repository import (
+    EmailVerificationCodeRepository,
+)
 from src.domain.interfaces.verification_code_generator import VerificationCodeGenerator
 
 
@@ -8,9 +13,11 @@ class EmailVerificationService:
         self,
         email_sender: EmailSender,
         verification_code_generator: VerificationCodeGenerator,
+        email_verification_code_repository: EmailVerificationCodeRepository,
     ):
         self.email_sender = email_sender
         self.verification_code_generator = verification_code_generator
+        self.email_verification_code_repository = email_verification_code_repository
 
     async def send_verification_code(self, user: User) -> str:
         """
@@ -22,7 +29,15 @@ class EmailVerificationService:
         Returns:
             Generated verification code (for saving to repository)
         """
-        verification_code = self.verification_code_generator.generate()
+        code = EmailVerificationCode(
+            id="",  # mongodb 에서 자동 생성
+            user_id=user.id,
+            email=user.email,
+            code=self.verification_code_generator.generate(),
+            expired_at=datetime.now(),
+        )
+
+        await self.email_verification_code_repository.create(code)
 
         html_content = f"""
         <!DOCTYPE html>
@@ -57,7 +72,7 @@ class EmailVerificationService:
                                     <div style="background-color: #f8f9fa; border-radius: 8px; padding: 30px; text-align: center; margin: 30px 0;">
                                         <p style="color: #666666; font-size: 14px; margin: 0 0 10px 0;">인증 코드</p>
                                         <p style="color: #4F46E5; font-size: 36px; font-weight: bold; letter-spacing: 8px; margin: 0;">
-                                            {verification_code}
+                                            {code.code}
                                         </p>
                                     </div>
 

@@ -9,7 +9,7 @@ class EmailVerificationCodeRepository(ABC):
         pass
 
     @abstractmethod
-    async def create(self, EmailVerificationCode):
+    async def create(self, EmailVerificationCode) -> EmailVerificationCode:
         pass
 
     @abstractmethod
