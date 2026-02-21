@@ -13,6 +13,9 @@ class MongoRefreshTokenRepository(RefreshTokenRepository):
     async def delete(self, token: str):
         await self.collection.delete_one({"refresh_token": token})
 
+    async def delete_by_user_id(self, user_id: str):
+        await self.collection.delete_many({"user_id": user_id})
+
     async def find_tokens_by_user_id(self, user_id: str) -> List[str]:
         cursor = self.collection.find({"user_id": user_id})
         documents = await cursor.to_list(length=None)

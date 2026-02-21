@@ -18,3 +18,7 @@ class RefreshTokenRepository(ABC):
     @abstractmethod
     async def exists(self, token: str) -> bool:
         pass
+
+    @abstractmethod
+    async def delete_by_user_id(self, user_id: str):
+        pass

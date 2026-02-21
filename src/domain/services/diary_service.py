@@ -1,5 +1,6 @@
 import re
 from datetime import date
+from typing import List, Optional
 
 from bson import ObjectId
 from src.domain.entities.chat import ChatMessage, ChatSession, MessageRole
@@ -21,6 +22,11 @@ class DiaryService:
         self.diary_repository = diary_repository
         self.chat_repository = chat_repository
         self.ai_chat_bot = ai_chat_bot
+
+    async def get_diary_list(
+        self, user: User, cursor_id: Optional[str], size: int
+    ) -> List[Diary]:
+        return await self.diary_repository.get_diary_list(user.id, cursor_id, size)
 
     async def get_chat_session(self, user: User) -> ChatSession:
         active_session = await self.chat_repository.find_active_session()
