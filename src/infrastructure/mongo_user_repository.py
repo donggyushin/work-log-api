@@ -1,4 +1,5 @@
 from typing import Optional
+from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
 
 from src.domain.entities.user import User
@@ -21,3 +22,19 @@ class MongoUserRepository(UserRepository):
 
         result["id"] = str(result.pop("_id"))
         return User(**result)
+
+    async def find_by_id(self, id: str) -> Optional[User]:
+        result = await self.collection.find_one({"_id": ObjectId(id)})
+        if result is None:
+            return None
+
+        result["id"] = str(result.pop("_id"))
+        return User(**result)
+
+    async def update(self, user: User) -> User:
+        user_dict = user.model_dump(exclude={"id"})
+        await self.collection.replace_one(
+            {"_id": ObjectId(user.id)},
+            user_dict
+        )
+        return user

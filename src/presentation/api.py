@@ -65,3 +65,8 @@ async def login(
 ):
     token = await auth_service.login(request.email, request.password)
     return RegisterResponse(**token)
+
+
+@app.post("/api/v1/email_verification_code")
+async def send_email_verification_code():
+    pass
