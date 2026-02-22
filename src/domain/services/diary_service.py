@@ -44,8 +44,8 @@ class DiaryService:
         if found_diary is None:
             raise NotFoundError()
 
-        # Download image from the provided URL
-        async with httpx.AsyncClient() as client:
+        # Download image from the provided URL (disable SSL verification for Docker)
+        async with httpx.AsyncClient(verify=False) as client:
             response = await client.get(thumbnail_url)
             response.raise_for_status()
             image_data = response.content

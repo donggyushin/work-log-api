@@ -1,9 +1,13 @@
 import os
+import urllib3
 from io import BytesIO
 
 import boto3
 from botocore.exceptions import ClientError
 from src.domain.interfaces.image_storage import ImageStorage
+
+# Disable SSL warnings in development
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class CloudflareR2Storage(ImageStorage):
@@ -25,12 +29,21 @@ class CloudflareR2Storage(ImageStorage):
         # R2 endpoint format: https://<account_id>.r2.cloudflarestorage.com
         endpoint_url = f"https://{account_id}.r2.cloudflarestorage.com"
 
+        # Create boto3 config to disable SSL verification in development
+        from botocore.config import Config
+
+        config = Config(
+            signature_version='s3v4',
+        )
+
         self.s3_client = boto3.client(
             "s3",
             endpoint_url=endpoint_url,
             aws_access_key_id=access_key_id,
             aws_secret_access_key=secret_access_key,
             region_name="auto",  # R2 uses "auto" as region
+            config=config,
+            verify=False,  # Disable SSL verification for Docker environment
         )
 
     async def upload(self, image_data: bytes, file_name: str) -> str:
