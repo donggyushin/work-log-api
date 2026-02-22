@@ -2,6 +2,7 @@ import os
 
 from openai import AsyncOpenAI
 
+from src.domain.exceptions import NotFoundError
 from src.domain.interfaces.image_generator import ImageGenerator
 
 
@@ -32,5 +33,8 @@ class DallEImageGenerator(ImageGenerator):
             quality="standard",
             n=1,
         )
+
+        if not response.data or not response.data[0].url:
+            raise NotFoundError()
 
         return response.data[0].url
