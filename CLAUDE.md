@@ -13,6 +13,8 @@ This is a FastAPI-based AI-powered diary/daily log API with MongoDB backend, con
 - AI-powered diary writing using Anthropic Claude (Sonnet 4.5)
 - Conversational diary creation through chat sessions
 - AI generates diary entries in the style of Korean author Lee Yeongdo (이영도)
+- AI-generated diary thumbnails using OpenAI DALL-E 3
+- Image storage via Cloudflare R2 (S3-compatible)
 
 ## Development Commands
 
@@ -75,7 +77,7 @@ src/
 1. **Dependency Inversion**: Domain layer defines interfaces, infrastructure implements them
    - Repositories: `UserRepository`, `ChatRepository`, `DiaryRepository`, `RefreshTokenRepository`
    - Providers: `Hasher`, `JWTProvider`, `VerificationCodeGenerator`, `RandomNameGenerator`
-   - External services: `AIChatBot`, `EmailSender`
+   - External services: `AIChatBot`, `EmailSender`, `ImageGenerator`, `ImageStorage`
 2. **Repository Pattern**: Data access abstracted via repository interfaces
    - MongoDB `_id` ↔ entity `id` conversion happens in repositories
    - Use `model_dump(exclude={"id"})` when inserting, convert `_id` to `id` string when reading
@@ -107,12 +109,26 @@ src/
   [CONTENT_START]내용[CONTENT_END]
   ```
 
+**AI Image Generation Pattern:**
+- `ImageGenerator` interface abstracts image generation provider (currently OpenAI DALL-E 3)
+- `ImageStorage` interface abstracts storage provider (currently Cloudflare R2)
+- `DiaryService` generates thumbnails based on diary title and content
+- Generated images are stored in R2 and public URL is saved with diary
+- R2 storage uses boto3 S3 client with Cloudflare-specific configuration:
+  - Endpoint format: `https://{account_id}.r2.cloudflarestorage.com`
+  - Region set to "auto" (R2 requirement)
+  - SSL verification disabled in Docker environment
+  - Public URLs via R2.dev domain or custom domain
+
 ### Technology Stack
 - **Framework**: FastAPI with Uvicorn ASGI server
 - **Database**: MongoDB 7 with Motor (async MongoDB driver)
 - **Authentication**: JWT tokens (access + refresh), bcrypt password hashing
-- **AI**: Anthropic Claude API (claude-sonnet-4-5-20250929)
+- **AI Services**:
+  - Anthropic Claude API (claude-sonnet-4-5-20250929) for diary writing
+  - OpenAI DALL-E 3 for thumbnail generation
 - **Email**: Resend API for email verification
+- **Storage**: Cloudflare R2 (S3-compatible) for images
 - **Package Manager**: uv (fast Python package manager)
 - **Python Version**: 3.14
 - **Containerization**: Docker + Docker Compose
@@ -172,6 +188,12 @@ Required variables in `.env`:
 - `MONGO_EXPRESS_PASSWORD` - Mongo Express login password
 - `RESEND_API_KEY` - Resend API key for email verification
 - `ANTHROPIC_API_KEY` - Anthropic API key for Claude AI integration
+- `OPEN_AI_API_KEY` - OpenAI API key for DALL-E 3 image generation
+- `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account ID for R2 storage
+- `CLOUDFLARE_R2_ACCESS_KEY_ID` - R2 access key ID
+- `CLOUDFLARE_R2_SECRET_ACCESS_KEY` - R2 secret access key
+- `CLOUDFLARE_R2_BUCKET_NAME` - R2 bucket name for storing images
+- `CLOUDFLARE_R2_PUBLIC_DOMAIN` - (Optional) Custom domain for R2 public URLs
 
 ## Code Conventions
 
@@ -199,7 +221,8 @@ When extending this codebase:
 - `User`: User account with email verification status
 - `ChatMessage`: Single message in a chat (role: SYSTEM/USER/ASSISTANT)
 - `ChatSession`: Conversation session with multiple messages
-- `Diary`: AI-generated diary entry linked to chat session
+- `Diary`: AI-generated diary entry with optional AI-generated thumbnail
+  - Fields: `id`, `user_id`, `chat_session_id`, `title`, `content`, `writed_at`, `thumbnail_url`, `created_at`, `updated_at`
 - `EmailVerificationCode`: Temporary verification code with expiration
 
 **Key Services:**
@@ -208,9 +231,17 @@ When extending this codebase:
 - `DiaryService`: Manage chat sessions and generate diaries
   - `get_chat_session()`: Get or create active session with system prompt
   - `send_chat_message()`: User sends message, AI responds
-  - `write_diary()`: Parse AI response and save diary
+  - `write_diary()`: Parse AI response, generate thumbnail, and save diary
   - `end_chat_session()`: Mark session as inactive
+  - AI thumbnail generation: Creates DALL-E 3 prompt from diary content, generates image, uploads to R2
 
 **Infrastructure Implementations:**
 - `FakerRandomNameGenerator`: Uses Faker library to generate random Korean nicknames (형용사 + 명사 combinations like "행복한루피", "용감한펭귄")
 - `AnthropicAIChatBot`: Anthropic Claude integration with proper `MessageParam` typing for type safety
+- `DallEImageGenerator`: OpenAI DALL-E 3 integration for thumbnail generation
+  - Uses `dall-e-3` model with `1024x1024` size and `natural` style
+  - Returns base64-encoded PNG images
+- `CloudflareR2Storage`: S3-compatible storage for images
+  - Uses boto3 with Cloudflare-specific endpoint configuration
+  - Supports custom domains or R2.dev public URLs
+  - SSL verification disabled for Docker environment compatibility
