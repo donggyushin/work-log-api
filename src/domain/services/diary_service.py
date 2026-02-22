@@ -102,7 +102,8 @@ class DiaryService:
         new_session = await self.chat_repository.create_session(new_session)
         return new_session
 
-    async def end_chat_session(self, session: ChatSession):
+    async def end_chat_session(self, session_id: str):
+        session = await self.chat_repository.find_session(session_id)
         await self.chat_repository.end_session(session)
 
     async def send_chat_message(
@@ -145,11 +146,20 @@ class DiaryService:
         )
 
         diary = await self.diary_repository.create(diary)
+        await self.end_chat_session(session_id)
         return diary
 
-    async def get_diary_by_date(self, writed_at: date) -> Diary:
-        diary = await self.diary_repository.find_by_date(writed_at)
+    async def get_diary_by_date(self, writed_at: date, user: User) -> Diary:
+        diary = await self.diary_repository.find_by_date(writed_at, user.id)
         if diary is None:
             raise NotFoundError()
 
         return diary
+
+    async def get_diary_by_id(self, diary_id: str) -> Diary:
+        diary = await self.diary_repository.find_by_id(diary_id)
+
+        if diary:
+            return diary
+        else:
+            raise NotFoundError()

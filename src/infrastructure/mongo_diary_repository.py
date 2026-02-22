@@ -13,13 +13,15 @@ class MongoDiaryRepository(DiaryRepository):
         self.collection: AsyncIOMotorCollection = db_client[db_name]["diaries"]
 
     async def create(self, diary: Diary) -> Diary:
-        dict = diary.model_dump(exclude={"id"})
+        dict = diary.model_dump(mode="json", exclude={"id"})
         result = await self.collection.insert_one(dict)
         dict["id"] = str(result.inserted_id)
         return Diary(**dict)
 
-    async def find_by_date(self, date: date) -> Optional[Diary]:
-        result = await self.collection.find_one({"date": date})
+    async def find_by_date(self, date: date, user_id: str) -> Optional[Diary]:
+        result = await self.collection.find_one(
+            {"writed_at": date.isoformat(), "user_id": user_id}
+        )
 
         if result is None:
             raise NotFoundError()

@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from datetime import date
 from typing import Annotated, List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, status
@@ -102,6 +103,31 @@ async def get_diary_list(
 ):
     diaries = await diary_service.get_diary_list(current_user, cursor_id, size)
     return diaries
+
+
+@app.get(
+    "/api/v1/diary/{diary_id}", response_model=Diary, status_code=status.HTTP_200_OK
+)
+async def find_diary(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)], diary_id: str
+):
+    try:
+        return await diary_service.get_diary_by_id(diary_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+
+@app.get("/api/v1/diary", response_model=Diary)
+async def find_diary_by_date(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)],
+    writed_at: Annotated[date, Query()],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    try:
+        diary = await diary_service.get_diary_by_date(writed_at, current_user)
+        return diary
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
 class WriteDiaryRequest(BaseModel):
