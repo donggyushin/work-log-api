@@ -104,6 +104,18 @@ async def get_diary_list(
     return diaries
 
 
+@app.get(
+    "/api/v1/diary/{diary_id}", response_model=Diary, status_code=status.HTTP_200_OK
+)
+async def find_diary(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)], diary_id: str
+):
+    try:
+        return await diary_service.get_diary_by_id(diary_id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+
 class WriteDiaryRequest(BaseModel):
     session_id: str
     message_id: str

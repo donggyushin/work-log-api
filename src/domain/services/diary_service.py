@@ -155,3 +155,11 @@ class DiaryService:
             raise NotFoundError()
 
         return diary
+
+    async def get_diary_by_id(self, diary_id: str) -> Diary:
+        diary = await self.diary_repository.find_by_id(diary_id)
+
+        if diary:
+            return diary
+        else:
+            raise NotFoundError()
