@@ -26,6 +26,35 @@ class DiaryService:
         self.ai_chat_bot = ai_chat_bot
         self.image_generator = image_generator
 
+    async def generate_example_thumbnail(self, diary_id: str) -> str:
+        diary = await self.diary_repository.find_by_id(diary_id)
+
+        if diary is None:
+            raise NotFoundError()
+
+        diary_content = diary.content
+
+        img_url = await self.image_generator.generate(
+            prompt=f"""
+            당신은 베테랑 일러스트레이터 작가입니다. 주로 정통판타지 장르문학에 들어가는 삽화를 그리는 일을 했습니다. 
+            그러다가 당신에게 새로운 임무가 주어졌습니다. 바로 소비자들이 일기를 당신에게 제출하면 그 일기를 듣고 몽환적인 그림을 그려주는 것입니다. 
+            일기에서 느껴지는 감정선에 따라서 이미지의 주요 컬러가 결정 됩니다. 
+            '사랑' 과 같이 설레는 내용이라면 파스톤 계열의 핑크색,
+            '우울' 과 같은 감정이 느껴지는 내용이라면 파스톤 계열의 파란색,
+            '자아성찰' 과 같은 감정이 느껴지는 내용이라면 갈색,
+            '열정' 과 같은 감정이 느껴지는 내용이라면 파스톤 계열의 붉은색,
+            '감동' 과 같은 감정이 느껴지는 내용이라면 따스한 계열의 노란색 
+            그 외에도 당신의 베테랑적인 감각으로 일기의 내용에 어울리는 계열의 색상을 메인 색상으로 선택해서 
+            몽환적이면서도 의미를 함축하고 있는 풍경화를 그려주세요. 
+
+            다음은 유저 일기의 내용입니다. 
+             
+            {diary_content}
+            """
+        )
+
+        return img_url
+
     async def get_diary_list(
         self, user: User, cursor_id: Optional[str], size: int
     ) -> List[Diary]:
