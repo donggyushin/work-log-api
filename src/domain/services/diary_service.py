@@ -54,21 +54,33 @@ class DiaryService:
         diary_content = diary.content
 
         img_url = await self.image_generator.generate(
-            prompt=f"""Create a whimsical, dreamlike storybook illustration based on this diary entry.
-Use an aerial top-down view or bird's eye perspective.
-The image should be clean, simple, and emotional with soft pastel colors.
-Style: Gentle watercolor or pastel illustration, like a children's fairytale book.
-Artistic feel: Soft-edged, hand-drawn, with delicate brush strokes and dreamy atmosphere.
-Choose main color palette based on the diary's emotion:
-- Love/Romance: Soft pastel pink with warm touches
-- Sadness/Melancholy: Soft pastel blue with gentle gray tones
-- Self-reflection: Warm earth tones with muted beige and soft brown
-- Passion/Energy: Soft pastel red or peach with warm orange hints
-- Joy/Gratitude: Warm pastel yellow or soft gold with gentle cream tones
+            prompt=f"""Create a minimalist, modern illustration that captures the essence of this diary entry.
 
-Include minimal whimsical elements (a tiny figure lying on grass, simple landscape, natural scenery with gentle curves).
-Keep it dreamy, peaceful, and magical like a bedtime storybook.
-Avoid photorealistic details - embrace illustration style with soft shapes and gentle colors.
+Style: Clean contemporary illustration with geometric simplicity and elegant composition.
+Mood: Calm, meditative, introspective - sophisticated and serene.
+
+Visual approach:
+- Use simple shapes, clean lines, and negative space effectively
+- Minimal details - focus on essential elements that convey the core emotion
+- Contemporary flat design aesthetic with subtle depth
+- Avoid literal depiction - use abstract or symbolic representation
+- Avoid cutesy, childish, or overly decorative elements
+
+Color palette (use muted, sophisticated tones based on diary's emotion):
+- Love/Romance: Muted rose, dusty pink, warm terracotta, soft burgundy
+- Sadness/Melancholy: Deep navy, slate blue, cool gray, charcoal
+- Self-reflection: Earthy beige, warm sand, muted olive, soft taupe
+- Passion/Energy: Burnt orange, deep coral, warm amber, rust
+- Joy/Gratitude: Soft gold, warm cream, gentle ochre, honey
+
+Composition guidelines:
+- Embrace negative space to create breathing room and calm
+- Use rule of thirds or centered symmetry for balance
+- Avoid cluttered compositions - "less is more"
+- Subtle, abstract shapes that evoke feeling rather than tell a story
+- Think minimalist journal cover or contemplative art poster
+
+The final image should feel like a thoughtful piece of contemporary art - sophisticated, calming, and deeply personal. It should invite quiet reflection rather than tell an obvious story.
 
 Diary content:
 {diary_content}"""
