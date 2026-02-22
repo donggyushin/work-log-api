@@ -208,20 +208,25 @@ CLOUDFLARE_R2_BUCKET_NAME=dailylog-images
 CLOUDFLARE_R2_PUBLIC_DOMAIN=  # 선택사항: 커스텀 도메인
 ```
 
-### Railway 서비스 간 연결
+### 환경 변수 입력 방법
 
-MongoDB와 API 서비스를 연결하려면:
-1. API 서비스의 "Variables" 탭에서
-2. "Reference Variable" 클릭
-3. MongoDB 서비스의 변수 참조:
-   ```
-   MONGO_URL=${{MongoDB.MONGO_URL}}
-   ```
+Railway 대시보드에서:
+1. API 서비스 선택
+2. **"Variables"** 탭 클릭
+3. **"New Variable"** 클릭
+4. 변수 이름과 값 입력
+5. **"Add"** 클릭
 
-**또는** Private Networking 사용:
-```bash
-MONGO_HOST=mongodb.railway.internal
-```
+또는 **"Raw Editor"** 사용:
+1. "Variables" 탭에서 **"RAW Editor"** 클릭
+2. 모든 환경 변수를 한 번에 붙여넣기:
+   ```
+   JWT_SECRET_KEY=your_secret_key
+   MONGO_URL=mongodb+srv://...
+   RESEND_API_KEY=re_...
+   ...
+   ```
+3. **"Update Variables"** 클릭
 
 ## 배포 확인
 
@@ -274,22 +279,45 @@ Railway가 자동으로 Let's Encrypt SSL 인증서를 발급합니다.
 
 ## 비용 예상
 
-### Railway 무료 티어
-- **Trial 플랜**: $5 크레딧/월
-- 소규모 프로젝트에 충분할 수 있음
+### MongoDB Atlas (데이터베이스)
+- **M0 (무료)**: 512MB 저장소 - **영구 무료** ✅
+- **M2**: 2GB - $9/월 (512MB 초과 시)
+- **M5**: 5GB - $25/월
 
-### 유료 플랜
+**512MB로 얼마나 사용 가능?**
+- 약 1,500명의 활성 사용자 (월 30개 일기 작성 기준)
+- 초기 1-2년은 무료로 충분
+
+### Railway (API 서버)
+- **Trial 플랜**: $5 크레딧/월 (신규 가입자)
 - **Hobby 플랜**: $5/월 + 사용량
-- **Pro 플랜**: $20/월 + 사용량
+  - API 서버 (512MB RAM): ~$3-5/월
+  - 월 예상 비용: **$5-10/월**
 
-**예상 비용 (Hobby 플랜):**
-- API 서버 (512MB RAM): ~$3-5/월
-- MongoDB (512MB RAM): ~$3-5/월
-- 총 예상: ~$6-15/월
+### 총 예상 비용
 
-**비용 절감 팁:**
-- MongoDB는 MongoDB Atlas 무료 티어 사용 (512MB)
-- 트래픽이 적으면 무료 크레딧으로 충분할 수 있음
+**초기 (Trial + Atlas 무료):**
+```
+MongoDB Atlas M0: $0/월
+Railway Trial: $5 크레딧/월
+총: $0-5/월 (거의 무료!) 🎉
+```
+
+**정식 운영 (Hobby + Atlas 무료):**
+```
+MongoDB Atlas M0: $0/월
+Railway Hobby: $5-10/월
+총: $5-10/월 ✅
+```
+
+**성장 후 (사용자 1,500명 초과):**
+```
+MongoDB Atlas M2: $9/월
+Railway: $10-15/월
+총: $19-24/월
+```
+
+💡 **팁:** 사용자 1,500명이면 이미 성공한 서비스입니다. 수익화를 통해 비용 충당 가능!
 
 ## 트러블슈팅
 
@@ -304,13 +332,22 @@ Error: failed to solve: executor failed running...
 - Dockerfile이 repository root에 있는지 확인
 - 로그에서 구체적인 에러 메시지 확인
 
-### 2. MongoDB 연결 실패
-**문제:** `MongoServerError: Authentication failed`
+### 2. MongoDB Atlas 연결 실패
+**문제:** `MongoServerError: Authentication failed` 또는 `connection timeout`
 
 **해결:**
-- 환경 변수 `MONGO_HOST`, `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD` 확인
-- Railway Private Networking이 활성화되었는지 확인
-- MongoDB 서비스가 실행 중인지 확인
+- ✅ `MONGO_URL` 환경 변수가 Railway에 올바르게 설정되었는지 확인
+- ✅ 연결 문자열의 `<username>`과 `<password>`가 실제 값으로 변경되었는지 확인
+- ✅ Atlas Network Access에서 `0.0.0.0/0` (모든 IP) 허용되었는지 확인
+- ✅ Atlas Database User가 "Read and write to any database" 권한을 가지는지 확인
+- ✅ 연결 문자열에 `/dailylog` 데이터베이스 이름이 포함되었는지 확인
+
+**비밀번호 특수문자 문제:**
+```bash
+# 비밀번호에 특수문자가 있으면 URL 인코딩 필요
+# 예: p@ssw0rd → p%40ssw0rd
+# 온라인 URL 인코더 사용: https://www.urlencoder.org/
+```
 
 ### 3. API가 시작하지 않음
 **문제:** 컨테이너가 시작 후 바로 종료됨

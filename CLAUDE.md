@@ -181,10 +181,11 @@ Type checking runs automatically in CI and will block PRs if errors are found.
 The project is designed to be deployed on **Railway** platform with Docker.
 
 ### Quick Deploy
-1. Create Railway account and project
-2. Deploy MongoDB service (use Railway template or Docker)
+1. Create MongoDB Atlas account and free M0 cluster (512MB)
+2. Create Railway account and project
 3. Deploy API service from GitHub repository
 4. Configure environment variables (see DEPLOYMENT.md)
+   - Add `MONGO_URL` with Atlas connection string
 5. Railway auto-detects Dockerfile and deploys
 
 ### Configuration Files
@@ -196,17 +197,23 @@ The project is designed to be deployed on **Railway** platform with Docker.
 
 ### Key Points
 - Railway auto-deploys on push to `main` branch
-- MongoDB can use Railway template (managed) or Docker (self-hosted)
+- MongoDB uses Atlas (managed cloud service) - 512MB free tier
+- Database connection via single `MONGO_URL` environment variable
 - All environment variables must be set in Railway dashboard
 - Automatic HTTPS and custom domain support
 - Health check endpoint: `/api/v1`
 
+### Database Connection
+- **Local development**: Uses individual env vars (`MONGO_HOST`, `MONGO_INITDB_ROOT_USERNAME`, etc.)
+- **Production (Railway)**: Uses `MONGO_URL` env var with Atlas connection string
+- Code automatically detects which method to use (`database.py`)
+
 ## Environment Variables
 
-Required variables in `.env`:
+### Local Development (`.env`)
 - `JWT_SECRET_KEY` - Secret key for JWT token signing
-- `MONGO_INITDB_ROOT_USERNAME` - MongoDB root username
-- `MONGO_INITDB_ROOT_PASSWORD` - MongoDB root password
+- `MONGO_INITDB_ROOT_USERNAME` - MongoDB root username (for local docker-compose)
+- `MONGO_INITDB_ROOT_PASSWORD` - MongoDB root password (for local docker-compose)
 - `MONGO_PORT` - MongoDB port (default: 27017)
 - `MONGO_EXPRESS_PORT` - Mongo Express UI port (default: 8081)
 - `MONGO_EXPRESS_USERNAME` - Mongo Express login username
@@ -219,6 +226,10 @@ Required variables in `.env`:
 - `CLOUDFLARE_R2_SECRET_ACCESS_KEY` - R2 secret access key
 - `CLOUDFLARE_R2_BUCKET_NAME` - R2 bucket name for storing images
 - `CLOUDFLARE_R2_PUBLIC_DOMAIN` - (Optional) Custom domain for R2 public URLs
+
+### Production (Railway)
+Same as above, but replace MongoDB variables with:
+- `MONGO_URL` - MongoDB Atlas connection string (e.g., `mongodb+srv://user:pass@cluster.mongodb.net/dailylog`)
 
 ## Code Conventions
 

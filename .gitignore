@@ -12,6 +12,3 @@ wheels/
 
 # Environment variables
 .env
-
-# Docker
-.dockerignore
