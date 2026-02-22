@@ -1,7 +1,9 @@
 import re
+import uuid
 from datetime import date
 from typing import List, Optional
 
+import httpx
 from bson import ObjectId
 from src.domain.entities.chat import ChatMessage, ChatSession, MessageRole
 from src.domain.entities.diary import Diary
@@ -11,6 +13,7 @@ from src.domain.interfaces.ai_chat_bot import AIChatBot
 from src.domain.interfaces.chat_repository import ChatRepository
 from src.domain.interfaces.diary_repository import DiaryRepository
 from src.domain.interfaces.image_generator import ImageGenerator
+from src.domain.interfaces.image_storage import ImageStorage
 
 
 class DiaryService:
@@ -20,11 +23,13 @@ class DiaryService:
         chat_repository: ChatRepository,
         ai_chat_bot: AIChatBot,
         image_generator: ImageGenerator,
+        image_storage: ImageStorage,
     ):
         self.diary_repository = diary_repository
         self.chat_repository = chat_repository
         self.ai_chat_bot = ai_chat_bot
         self.image_generator = image_generator
+        self.image_storage = image_storage
 
     async def delete(self, diary_id: str):
         found_diary = await self.diary_repository.find_by_id(diary_id)
@@ -33,13 +38,26 @@ class DiaryService:
 
         await self.diary_repository.delete(found_diary)
 
-    async def update_thumbnail(self, diary_id: str, thumbnail_url) -> Diary:
+    async def update_thumbnail(self, diary_id: str, thumbnail_url: str) -> Diary:
         found_diary = await self.diary_repository.find_by_id(diary_id)
 
         if found_diary is None:
             raise NotFoundError()
 
-        found_diary.thumbnail_url = thumbnail_url
+        # Download image from the provided URL
+        async with httpx.AsyncClient() as client:
+            response = await client.get(thumbnail_url)
+            response.raise_for_status()
+            image_data = response.content
+
+        # Generate unique filename
+        file_name = f"diary-thumbnails/{diary_id}-{uuid.uuid4()}.png"
+
+        # Upload to R2 and get permanent URL
+        permanent_url = await self.image_storage.upload(image_data, file_name)
+
+        # Update diary with permanent URL
+        found_diary.thumbnail_url = permanent_url
 
         await self.diary_repository.update(found_diary)
 
