@@ -33,7 +33,7 @@ class CloudflareR2Storage(ImageStorage):
         from botocore.config import Config
 
         config = Config(
-            signature_version='s3v4',
+            signature_version="s3v4",
         )
 
         self.s3_client = boto3.client(
@@ -74,8 +74,11 @@ class CloudflareR2Storage(ImageStorage):
                 # Use custom domain if configured
                 return f"https://{self.public_domain}/{file_name}"
             else:
+                # https://pub-7241c825b0804fa08eb47ae5e9934e0f.r2.dev/
                 # Use R2.dev public URL
-                return f"https://{self.bucket_name}.public.r2.dev/{file_name}"
+                return (
+                    f"https://pub-7241c825b0804fa08eb47ae5e9934e0f.r2.dev/{file_name}"
+                )
 
         except ClientError as e:
             raise Exception(f"Failed to upload image to R2: {str(e)}")
