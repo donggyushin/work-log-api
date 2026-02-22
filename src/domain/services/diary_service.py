@@ -169,7 +169,7 @@ Diary content:
 
         await self.chat_repository.add_message(session, new_message)
         reply = await self.ai_chat_bot.send(session)
-        await self.chat_repository.add_message(session, reply)
+        reply = await self.chat_repository.add_message(session, reply)
         return reply
 
     async def write_diary(self, session_id: str, message_id: str) -> Diary:

@@ -36,21 +36,23 @@ class MongoChatRepository(ChatRepository):
 
         return ChatSession(**result)
 
-    async def add_message(self, session: ChatSession, message: ChatMessage):
+    async def add_message(
+        self, session: ChatSession, message: ChatMessage
+    ) -> ChatMessage:
         # MongoDB의 $push 연산자를 사용해 messages 배열에 추가
         # message.id는 제외하고 새로운 MongoDB _id 생성
-        prev_id = message.id
+
+        object_id = ObjectId()
 
         message_dict = message.model_dump(mode="json", exclude={"id"})
-
-        if prev_id and prev_id.__len__() > 0:
-            message_dict["_id"] = ObjectId(prev_id)
-        else:
-            message_dict["_id"] = ObjectId()
+        message_dict["_id"] = object_id
 
         await self.collection.update_one(
             {"_id": ObjectId(session.id)}, {"$push": {"messages": message_dict}}
         )
+
+        message.id = str(object_id)
+        return message
 
     async def end_session(self, session: ChatSession):
         # active 상태를 False로 변경
