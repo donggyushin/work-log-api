@@ -10,6 +10,7 @@ from src.domain.exceptions import NotFoundError
 from src.domain.interfaces.ai_chat_bot import AIChatBot
 from src.domain.interfaces.chat_repository import ChatRepository
 from src.domain.interfaces.diary_repository import DiaryRepository
+from src.domain.interfaces.image_generator import ImageGenerator
 
 
 class DiaryService:
@@ -18,10 +19,12 @@ class DiaryService:
         diary_repository: DiaryRepository,
         chat_repository: ChatRepository,
         ai_chat_bot: AIChatBot,
+        image_generator: ImageGenerator,
     ):
         self.diary_repository = diary_repository
         self.chat_repository = chat_repository
         self.ai_chat_bot = ai_chat_bot
+        self.image_generator = image_generator
 
     async def get_diary_list(
         self, user: User, cursor_id: Optional[str], size: int

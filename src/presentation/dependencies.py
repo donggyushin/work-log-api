@@ -14,6 +14,7 @@ from src.domain.interfaces.email_verification_code_repository import (
     EmailVerificationCodeRepository,
 )
 from src.domain.interfaces.hasher import Hasher
+from src.domain.interfaces.image_generator import ImageGenerator
 from src.domain.interfaces.jwt_provider import JWTProvider
 from src.domain.interfaces.random_name_generator import RandomNameGenerator
 from src.domain.interfaces.refresh_token_repository import RefreshTokenRepository
@@ -24,6 +25,7 @@ from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
 from src.infrastructure.bcrypt_hasher import BcryptHasher
+from src.infrastructure.dall_e_image_generator import DallEImageGenerator
 from src.infrastructure.database import get_database
 from src.infrastructure.faker_random_name_generator import FakerRandomNameGenerator
 from src.infrastructure.mongo_chat_repository import MongoChatRepository
@@ -113,7 +115,9 @@ def get_auth_service(
     ],
     hasher: Annotated[Hasher, Depends(get_hasher)],
     jwt_provider: Annotated[JWTProvider, Depends(get_jwt_provider)],
-    random_name_generator: Annotated[RandomNameGenerator, Depends(get_random_name_generator)],
+    random_name_generator: Annotated[
+        RandomNameGenerator, Depends(get_random_name_generator)
+    ],
 ) -> AuthService:
     """Get auth service instance with all dependencies injected"""
     return AuthService(
@@ -147,12 +151,17 @@ def get_ai_chat_bot() -> AIChatBot:
     return AnthropicAIChatBot()
 
 
+def get_image_generator() -> ImageGenerator:
+    return DallEImageGenerator()
+
+
 def get_diary_service(
     diary_repository: Annotated[DiaryRepository, Depends(get_diary_repository)],
     chat_repository: Annotated[ChatRepository, Depends(get_chat_repository)],
     ai_chat_bot: Annotated[AIChatBot, Depends(get_ai_chat_bot)],
+    image_generator: Annotated[ImageGenerator, Depends(get_image_generator)],
 ) -> DiaryService:
-    return DiaryService(diary_repository, chat_repository, ai_chat_bot)
+    return DiaryService(diary_repository, chat_repository, ai_chat_bot, image_generator)
 
 
 # HTTPBearer security scheme
