@@ -10,6 +10,7 @@ from src.domain.exceptions import NotFoundError
 from src.domain.interfaces.ai_chat_bot import AIChatBot
 from src.domain.interfaces.chat_repository import ChatRepository
 from src.domain.interfaces.diary_repository import DiaryRepository
+from src.domain.interfaces.image_generator import ImageGenerator
 
 
 class DiaryService:
@@ -18,10 +19,53 @@ class DiaryService:
         diary_repository: DiaryRepository,
         chat_repository: ChatRepository,
         ai_chat_bot: AIChatBot,
+        image_generator: ImageGenerator,
     ):
         self.diary_repository = diary_repository
         self.chat_repository = chat_repository
         self.ai_chat_bot = ai_chat_bot
+        self.image_generator = image_generator
+
+    async def update_thumbnail(self, diary_id: str, thumbnail_url) -> Diary:
+        found_diary = await self.diary_repository.find_by_id(diary_id)
+
+        if found_diary is None:
+            raise NotFoundError()
+
+        found_diary.thumbnail_url = thumbnail_url
+
+        await self.diary_repository.update(found_diary)
+
+        return found_diary
+
+    async def generate_example_thumbnail(self, diary_id: str) -> str:
+        diary = await self.diary_repository.find_by_id(diary_id)
+
+        if diary is None:
+            raise NotFoundError()
+
+        diary_content = diary.content
+
+        img_url = await self.image_generator.generate(
+            prompt=f"""Create a minimalist, dreamlike scene based on this diary entry.
+Use an aerial top-down view or bird's eye perspective.
+The image should be clean, simple, and emotional with pastel colors.
+Style: Soft, peaceful, minimalist photography or illustration.
+Choose main color based on the diary's emotion:
+- Love/Romance: Soft pastel pink
+- Sadness/Melancholy: Soft pastel blue
+- Self-reflection: Warm earth tones
+- Passion/Energy: Soft pastel red or orange
+- Joy/Gratitude: Warm pastel yellow or gold
+
+Include minimal elements (person lying on grass, simple landscape, natural scenery).
+Keep it dreamy, peaceful, and cinematic.
+
+Diary content:
+{diary_content}"""
+        )
+
+        return img_url
 
     async def get_diary_list(
         self, user: User, cursor_id: Optional[str], size: int

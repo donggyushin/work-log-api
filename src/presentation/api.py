@@ -143,6 +143,39 @@ async def write_diary(
     return await diary_service.write_diary(request.session_id, request.message_id)
 
 
+class DiaryThumbnailExampleResponse(BaseModel):
+    img_url: str
+
+
+@app.get(
+    "/api/v1/diary/thumbnail/{diary_id}",
+    response_model=DiaryThumbnailExampleResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def generate_diary_thumbnail_example_image(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)], diary_id: str
+):
+    img_url = await diary_service.generate_example_thumbnail(diary_id)
+    return DiaryThumbnailExampleResponse(img_url=img_url)
+
+
+class ChangeDiaryThumbnailRequest(BaseModel):
+    img_url: str
+
+
+@app.patch("/api/v1/diary/{diary_id}/thumbnail", response_model=Diary)
+async def change_diary_thumbnail(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)],
+    request: ChangeDiaryThumbnailRequest,
+    diary_id: str,
+):
+    try:
+        diary = await diary_service.update_thumbnail(diary_id, request.img_url)
+        return diary
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+
 class RegisterRequest(BaseModel):
     email: str = Field(min_length=10, description="User email")
     password: str = Field(min_length=10, description="User password")

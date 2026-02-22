@@ -23,3 +23,7 @@ class DiaryRepository(ABC):
         self, user_id: str, cursor_id: Optional[str], size: int
     ) -> List[Diary]:
         pass
+
+    @abstractmethod
+    async def update(self, diary: Diary) -> Diary:
+        pass
