@@ -47,19 +47,21 @@ class DiaryService:
         diary_content = diary.content
 
         img_url = await self.image_generator.generate(
-            prompt=f"""Create a minimalist, dreamlike scene based on this diary entry.
+            prompt=f"""Create a whimsical, dreamlike storybook illustration based on this diary entry.
 Use an aerial top-down view or bird's eye perspective.
-The image should be clean, simple, and emotional with pastel colors.
-Style: Soft, peaceful, minimalist photography or illustration.
-Choose main color based on the diary's emotion:
-- Love/Romance: Soft pastel pink
-- Sadness/Melancholy: Soft pastel blue
-- Self-reflection: Warm earth tones
-- Passion/Energy: Soft pastel red or orange
-- Joy/Gratitude: Warm pastel yellow or gold
+The image should be clean, simple, and emotional with soft pastel colors.
+Style: Gentle watercolor or pastel illustration, like a children's fairytale book.
+Artistic feel: Soft-edged, hand-drawn, with delicate brush strokes and dreamy atmosphere.
+Choose main color palette based on the diary's emotion:
+- Love/Romance: Soft pastel pink with warm touches
+- Sadness/Melancholy: Soft pastel blue with gentle gray tones
+- Self-reflection: Warm earth tones with muted beige and soft brown
+- Passion/Energy: Soft pastel red or peach with warm orange hints
+- Joy/Gratitude: Warm pastel yellow or soft gold with gentle cream tones
 
-Include minimal elements (person lying on grass, simple landscape, natural scenery).
-Keep it dreamy, peaceful, and cinematic.
+Include minimal whimsical elements (a tiny figure lying on grass, simple landscape, natural scenery with gentle curves).
+Keep it dreamy, peaceful, and magical like a bedtime storybook.
+Avoid photorealistic details - embrace illustration style with soft shapes and gentle colors.
 
 Diary content:
 {diary_content}"""
