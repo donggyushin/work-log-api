@@ -27,6 +27,12 @@ class MongoChatRepository(ChatRepository):
         _id = result.pop("_id")
         result["id"] = str(_id)
 
+        # messages 배열의 각 메시지도 _id를 id로 변환
+        if "messages" in result:
+            for message in result["messages"]:
+                message_id = message.pop("_id")
+                message["id"] = str(message_id)
+
         return ChatSession(**result)
 
     async def add_message(self, session: ChatSession, message: ChatMessage):
@@ -52,6 +58,12 @@ class MongoChatRepository(ChatRepository):
             raise NotFoundError()
 
         result["id"] = str(result.pop("_id"))
+
+        # messages 배열의 각 메시지도 _id를 id로 변환
+        if "messages" in result:
+            for message in result["messages"]:
+                message_id = message.pop("_id")
+                message["id"] = str(message_id)
 
         return ChatSession(**result)
 
