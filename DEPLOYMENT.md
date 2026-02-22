@@ -17,7 +17,12 @@
 - https://railway.app 접속
 - GitHub 계정으로 로그인
 
-### 2. 필요한 외부 서비스 API 키 준비
+### 2. MongoDB Atlas 계정 생성 (권장)
+- https://www.mongodb.com/cloud/atlas/register 접속
+- Google 또는 이메일로 가입
+- **무료 M0 티어** 선택 (512MB 영구 무료)
+
+### 3. 필요한 외부 서비스 API 키 준비
 다음 서비스들의 API 키가 필요합니다:
 - ✅ **Resend** (이메일 인증): https://resend.com
 - ✅ **Anthropic** (Claude AI): https://console.anthropic.com
@@ -43,34 +48,102 @@ railway init
 2. "Deploy from GitHub repo" 선택
 3. 본 repository 선택
 
-## MongoDB 배포
+## MongoDB Atlas 설정 (강력 권장) 🌟
 
-Railway에서 MongoDB를 배포하는 **두 가지 방법**:
+### 왜 Atlas를 권장하는가?
 
-### 방법 1: Railway MongoDB 템플릿 (권장)
-1. Railway 대시보드에서 "+ New" 클릭
-2. "Database" → "Add MongoDB" 선택
-3. 자동으로 MongoDB 인스턴스 생성됨
-4. "Variables" 탭에서 `MONGO_URL` 확인
+| 항목 | MongoDB Atlas | Railway MongoDB |
+|------|---------------|-----------------|
+| **무료 티어** | ✅ 512MB 영구 무료 | ❌ Volume 비용 별도 |
+| **자동 백업** | ✅ 7일 자동 백업 | ❌ 직접 관리 필요 |
+| **고가용성** | ✅ 3개 리전 복제 | ❌ 단일 인스턴스 |
+| **모니터링** | ✅ 실시간 성능 모니터링 | ❌ 제한적 |
+| **확장성** | ✅ 클릭으로 업그레이드 | ❌ 복잡한 마이그레이션 |
+| **데이터 용량** | 512MB = 약 1,500명 사용자 | Volume 비용 증가 |
 
-**장점:**
-- 자동 설정 및 관리
-- 백업 기능 제공
-- 별도 설정 불필요
+### Atlas 설정 단계
 
-### 방법 2: Docker로 직접 배포
-1. 새 서비스 추가: "New Service" → "Empty Service"
-2. "Settings" → "Source" → Docker Image 선택
-3. Image: `mongo:7`
-4. 환경 변수 설정:
+#### 1. 클러스터 생성
+
+1. https://www.mongodb.com/cloud/atlas/register 접속 후 로그인
+2. **"Build a Database"** 클릭
+3. 배포 옵션 선택:
+   - **M0 (Free)** 선택 ✅
+   - Provider: **AWS** (권장)
+   - Region: **Seoul (ap-northeast-2)** 선택
+   - Cluster Name: `dailylog-cluster` (자유롭게 변경 가능)
+4. **"Create"** 클릭
+
+⏱️ 클러스터 생성까지 약 3-5분 소요
+
+#### 2. 보안 설정
+
+**A. 데이터베이스 사용자 생성:**
+
+1. 좌측 메뉴 **"Security"** → **"Database Access"** 클릭
+2. **"Add New Database User"** 클릭
+3. 설정:
+   - Authentication Method: **Password**
+   - Username: `dailylog-admin` (원하는 이름)
+   - Password: **강력한 비밀번호 생성**
+     ```bash
+     # 안전한 비밀번호 생성 예시
+     openssl rand -base64 32
+     ```
+     ⚠️ **이 비밀번호를 반드시 저장하세요!**
+   - Database User Privileges: **Read and write to any database**
+4. **"Add User"** 클릭
+
+**B. 네트워크 접근 허용:**
+
+1. 좌측 메뉴 **"Security"** → **"Network Access"** 클릭
+2. **"Add IP Address"** 클릭
+3. **"Allow Access from Anywhere"** 선택
+   - IP Address: `0.0.0.0/0` (자동 입력됨)
+   - ℹ️ Railway 서버 IP가 동적이므로 필요합니다
+   - 🔒 사용자명/비밀번호로 보안이 유지됩니다
+4. **"Confirm"** 클릭
+
+#### 3. 연결 문자열 가져오기
+
+1. 좌측 메뉴 **"Database"** 탭으로 이동
+2. 클러스터에서 **"Connect"** 버튼 클릭
+3. **"Drivers"** 선택
+4. 설정:
+   - Driver: **Python**
+   - Version: **3.12 or later**
+5. **연결 문자열 복사** (Step 3):
    ```
-   MONGO_INITDB_ROOT_USERNAME=admin
-   MONGO_INITDB_ROOT_PASSWORD=[강력한 비밀번호]
+   mongodb+srv://<username>:<password>@dailylog-cluster.xxxxx.mongodb.net/?retryWrites=true&w=majority
    ```
-5. Volume 추가 (데이터 영속성):
-   - Mount Path: `/data/db`
 
-**⚠️ 주의:** Railway는 Volume 사용 시 별도 비용이 발생할 수 있습니다.
+6. **실제 값으로 변경**:
+   ```
+   # 예시 (실제 값으로 변경하세요)
+   mongodb+srv://dailylog-admin:your_password_here@dailylog-cluster.abc123.mongodb.net/?retryWrites=true&w=majority
+   ```
+
+   ⚠️ `<username>`과 `<password>`를 2단계에서 생성한 실제 값으로 변경!
+
+7. **데이터베이스 이름 추가** (중요!):
+   ```
+   # /dailylog 추가
+   mongodb+srv://dailylog-admin:your_password_here@dailylog-cluster.abc123.mongodb.net/dailylog?retryWrites=true&w=majority
+   ```
+
+✅ **이 최종 연결 문자열을 Railway 환경 변수에 사용합니다!**
+
+#### 4. 연결 테스트 (선택사항)
+
+로컬에서 테스트:
+```bash
+# MongoDB Compass 설치 (GUI 도구)
+# https://www.mongodb.com/products/compass
+
+# 또는 Python으로 테스트
+pip install pymongo
+python -c "from pymongo import MongoClient; client = MongoClient('your_connection_string'); print(client.server_info())"
+```
 
 ## API 서버 배포
 
@@ -105,21 +178,16 @@ JWT_SECRET_KEY=your_super_secret_jwt_key_change_this_in_production
 openssl rand -hex 32
 ```
 
-#### 2. MongoDB 연결
-**방법 1 사용 시 (Railway MongoDB):**
+#### 2. MongoDB Atlas 연결
 ```bash
-MONGO_HOST=mongodb  # Railway가 자동으로 설정
-# Railway의 MongoDB 서비스 변수 참조:
-# ${{MongoDB.MONGO_URL}} 형식으로 자동 연결됨
+# MongoDB Atlas 연결 문자열 (3단계에서 복사한 값)
+MONGO_URL=mongodb+srv://dailylog-admin:your_password@dailylog-cluster.xxxxx.mongodb.net/dailylog?retryWrites=true&w=majority
 ```
 
-**방법 2 사용 시 (직접 배포):**
-```bash
-MONGO_HOST=your-mongodb-service-name.railway.internal
-MONGO_INITDB_ROOT_USERNAME=admin
-MONGO_INITDB_ROOT_PASSWORD=your_mongodb_password
-MONGO_PORT=27017
-```
+⚠️ **주의사항:**
+- `your_password`를 실제 비밀번호로 변경
+- `/dailylog` 데이터베이스 이름 포함 확인
+- 연결 문자열에 특수문자가 있으면 URL 인코딩 필요
 
 #### 3. 외부 API 키
 ```bash
