@@ -12,6 +12,9 @@ class MongoDiaryRepository(DiaryRepository):
     def __init__(self, db_client: AsyncIOMotorClient, db_name: str = "dailylog"):
         self.collection: AsyncIOMotorCollection = db_client[db_name]["diaries"]
 
+    async def delete(self, diary: Diary):
+        await self.collection.delete_one({"_id": ObjectId(diary.id)})
+
     async def update(self, diary: Diary) -> Diary:
         diary_dict = diary.model_dump(mode="json", exclude={"id"})
 

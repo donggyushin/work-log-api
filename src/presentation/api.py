@@ -105,6 +105,13 @@ async def get_diary_list(
     return diaries
 
 
+@app.delete("/api/v1/diary/{diary_id}")
+async def delete_diary(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)], diary_id: str
+):
+    await diary_service.delete(diary_id)
+
+
 @app.get(
     "/api/v1/diary/{diary_id}", response_model=Diary, status_code=status.HTTP_200_OK
 )
