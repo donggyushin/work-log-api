@@ -43,7 +43,7 @@ class MongoChatRepository(ChatRepository):
 
         message_dict = message.model_dump(mode="json", exclude={"id"})
 
-        if prev_id:
+        if prev_id and prev_id.__len__() > 0:
             message_dict["_id"] = ObjectId(prev_id)
         else:
             message_dict["_id"] = ObjectId()
