@@ -143,6 +143,22 @@ async def write_diary(
     return await diary_service.write_diary(request.session_id, request.message_id)
 
 
+class DiaryThumbnailExampleResponse(BaseModel):
+    img_url: str
+
+
+@app.get(
+    "/api/v1/diary/thumbnail/{diary_id}",
+    response_model=DiaryThumbnailExampleResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def generate_diary_thumbnail_example_image(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)], diary_id: str
+):
+    img_url = diary_service.generate_example_thumbnail(diary_id)
+    return img_url
+
+
 class RegisterRequest(BaseModel):
     email: str = Field(min_length=10, description="User email")
     password: str = Field(min_length=10, description="User password")
