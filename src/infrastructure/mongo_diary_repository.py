@@ -19,7 +19,9 @@ class MongoDiaryRepository(DiaryRepository):
         return Diary(**dict)
 
     async def find_by_date(self, date: date, user_id: str) -> Optional[Diary]:
-        result = await self.collection.find_one({"writed_at": date, "user_id": user_id})
+        result = await self.collection.find_one(
+            {"writed_at": date.isoformat(), "user_id": user_id}
+        )
 
         if result is None:
             raise NotFoundError()
