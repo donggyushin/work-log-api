@@ -39,8 +39,14 @@ class MongoChatRepository(ChatRepository):
     async def add_message(self, session: ChatSession, message: ChatMessage):
         # MongoDB의 $push 연산자를 사용해 messages 배열에 추가
         # message.id는 제외하고 새로운 MongoDB _id 생성
+        prev_id = message.id
+
         message_dict = message.model_dump(mode="json", exclude={"id"})
-        message_dict["_id"] = ObjectId()
+
+        if prev_id:
+            message_dict["_id"] = ObjectId(prev_id)
+        else:
+            message_dict["_id"] = ObjectId()
 
         await self.collection.update_one(
             {"_id": ObjectId(session.id)}, {"$push": {"messages": message_dict}}
