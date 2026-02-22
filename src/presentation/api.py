@@ -5,7 +5,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from src.domain.entities.chat import ChatSession
+from src.domain.entities.chat import ChatMessage, ChatSession
 from src.domain.entities.diary import Diary
 from src.domain.entities.user import User
 from src.domain.exceptions import (
@@ -71,6 +71,22 @@ async def get_current_chat_session(
 ):
     current_session = await diary_service.get_chat_session(current_user)
     return current_session
+
+
+class ChatSendMessageRequest(BaseModel):
+    session_id: str
+    message: ChatMessage
+
+
+@app.post(
+    "/api/v1/chat/message", status_code=status.HTTP_200_OK, response_model=ChatMessage
+)
+async def send_message(
+    request: ChatSendMessageRequest,
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)],
+):
+    reply = await diary_service.send_chat_message(request.message, request.session_id)
+    return reply
 
 
 @app.get("/api/v1/diaries", response_model=List[Diary], status_code=status.HTTP_200_OK)

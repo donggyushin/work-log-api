@@ -106,9 +106,13 @@ class DiaryService:
         await self.chat_repository.end_session(session)
 
     async def send_chat_message(
-        self, session: ChatSession, new_message: ChatMessage
+        self,
+        new_message: ChatMessage,
+        session_id: str,
     ) -> ChatMessage:
+        session = await self.chat_repository.find_session(session_id)
         session.messages.append(new_message)
+
         await self.chat_repository.add_message(session, new_message)
         reply = await self.ai_chat_bot.send(session)
         await self.chat_repository.add_message(session, reply)
