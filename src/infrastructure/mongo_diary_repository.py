@@ -12,6 +12,15 @@ class MongoDiaryRepository(DiaryRepository):
     def __init__(self, db_client: AsyncIOMotorClient, db_name: str = "dailylog"):
         self.collection: AsyncIOMotorCollection = db_client[db_name]["diaries"]
 
+    async def update(self, diary: Diary) -> Diary:
+        diary_dict = diary.model_dump(mode="json", exclude={"id"})
+
+        await self.collection.update_one(
+            {"_id": ObjectId(diary.id)}, {"$set": diary_dict}
+        )
+
+        return diary
+
     async def create(self, diary: Diary) -> Diary:
         dict = diary.model_dump(mode="json", exclude={"id"})
         result = await self.collection.insert_one(dict)

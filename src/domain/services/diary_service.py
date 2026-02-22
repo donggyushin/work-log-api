@@ -26,6 +26,18 @@ class DiaryService:
         self.ai_chat_bot = ai_chat_bot
         self.image_generator = image_generator
 
+    async def update_thumbnail(self, diary_id: str, thumbnail_url) -> Diary:
+        found_diary = await self.diary_repository.find_by_id(diary_id)
+
+        if found_diary is None:
+            raise NotFoundError()
+
+        found_diary.thumbnail_url = thumbnail_url
+
+        await self.diary_repository.update(found_diary)
+
+        return found_diary
+
     async def generate_example_thumbnail(self, diary_id: str) -> str:
         diary = await self.diary_repository.find_by_id(diary_id)
 
