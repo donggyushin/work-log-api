@@ -176,6 +176,31 @@ uv run mypy src/ --pretty   # Direct mypy command
 
 Type checking runs automatically in CI and will block PRs if errors are found.
 
+## Deployment
+
+The project is designed to be deployed on **Railway** platform with Docker.
+
+### Quick Deploy
+1. Create Railway account and project
+2. Deploy MongoDB service (use Railway template or Docker)
+3. Deploy API service from GitHub repository
+4. Configure environment variables (see DEPLOYMENT.md)
+5. Railway auto-detects Dockerfile and deploys
+
+### Configuration Files
+- `railway.toml` - Railway service configuration
+- `Dockerfile` - Production-ready with health check
+- `.dockerignore` - Excludes unnecessary files from build
+
+**For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)**
+
+### Key Points
+- Railway auto-deploys on push to `main` branch
+- MongoDB can use Railway template (managed) or Docker (self-hosted)
+- All environment variables must be set in Railway dashboard
+- Automatic HTTPS and custom domain support
+- Health check endpoint: `/api/v1`
+
 ## Environment Variables
 
 Required variables in `.env`:

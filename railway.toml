@@ -1,0 +1,13 @@
+# Railway 배포 설정
+# Railway는 Dockerfile을 자동으로 감지하지만, 명시적 설정을 위해 이 파일을 사용합니다.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "uv run main.py"
+healthcheckPath = "/api/v1"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
