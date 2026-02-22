@@ -72,33 +72,45 @@ class DiaryService:
         diary_content = diary.content
 
         img_url = await self.image_generator.generate(
-            prompt=f"""Create a minimalist, modern illustration that captures the essence of this diary entry.
+            prompt=f"""Create a detailed anime-style background illustration inspired by this diary entry.
 
-Style: Clean contemporary illustration with geometric simplicity and elegant composition.
-Mood: Calm, meditative, introspective - sophisticated and serene.
+Style: Vintage Japanese anime background art with clean line work and atmospheric depth. Similar to Studio Ghibli, Makoto Shinkai, or classic anime background paintings.
 
 Visual approach:
-- Use simple shapes, clean lines, and negative space effectively
-- Minimal details - focus on essential elements that convey the core emotion
-- Contemporary flat design aesthetic with subtle depth
-- Avoid literal depiction - use abstract or symbolic representation
-- Avoid cutesy, childish, or overly decorative elements
+- Detailed interior or exterior scene with clear perspective and depth
+- Clean, precise line art with careful attention to architectural details
+- Atmospheric lighting that conveys the mood and time of day
+- Include environmental storytelling elements (objects, furniture, nature)
+- Realistic spatial composition with proper perspective
+- Cinematic framing - could be a still from an anime film
 
-Color palette (use muted, sophisticated tones based on diary's emotion):
-- Love/Romance: Muted rose, dusty pink, warm terracotta, soft burgundy
-- Sadness/Melancholy: Deep navy, slate blue, cool gray, charcoal
-- Self-reflection: Earthy beige, warm sand, muted olive, soft taupe
-- Passion/Energy: Burnt orange, deep coral, warm amber, rust
-- Joy/Gratitude: Soft gold, warm cream, gentle ochre, honey
+Mood and atmosphere (based on diary emotion):
+- Love/Romance: Warm sunset light, cozy intimate spaces, soft glows
+- Sadness/Melancholy: Overcast skies, rain, muted indoor lighting, solitary spaces
+- Self-reflection: Quiet contemplative settings, window views, gentle natural light
+- Passion/Energy: Dynamic lighting, vibrant skies, energetic color contrasts
+- Joy/Gratitude: Bright clear skies, sunlit rooms, cheerful atmosphere
 
-Composition guidelines:
-- Embrace negative space to create breathing room and calm
-- Use rule of thirds or centered symmetry for balance
-- Avoid cluttered compositions - "less is more"
-- Subtle, abstract shapes that evoke feeling rather than tell a story
-- Think minimalist journal cover or contemplative art poster
+Scene elements to consider:
+- Windows with views (sky, nature, cityscape)
+- Indoor spaces with character (rooms, cafes, libraries)
+- Natural elements (trees, clouds, water, plants)
+- Subtle hints of life (a cup of tea, an open book, a pet)
+- Time of day reflected in lighting (morning, afternoon, evening, night)
 
-The final image should feel like a thoughtful piece of contemporary art - sophisticated, calming, and deeply personal. It should invite quiet reflection rather than tell an obvious story.
+Color palette:
+- Use rich, saturated colors typical of anime backgrounds
+- Strong contrast between light and shadow
+- Atmospheric haze or light effects
+- Colors should match the emotional tone of the diary
+
+Technical style:
+- Detailed but painterly - not photorealistic
+- Clean lines combined with soft color fills
+- Depth of field - some areas sharp, some soft
+- Cinematic composition
+
+Create a scene that feels like a quiet moment frozen in time, where the viewer can imagine themselves in this space, reflecting on the diary's emotional content.
 
 Diary content:
 {diary_content}"""
