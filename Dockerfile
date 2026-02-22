@@ -22,5 +22,9 @@ ENV PATH="/app/.venv/bin:$PATH"
 # 포트 노출
 EXPOSE 8000
 
+# 헬스체크 (프로덕션 배포용)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1')" || exit 1
+
 # 서버 실행
 CMD ["uv", "run", "main.py"]
