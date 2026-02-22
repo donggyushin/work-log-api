@@ -18,8 +18,8 @@ class MongoDiaryRepository(DiaryRepository):
         dict["id"] = str(result.inserted_id)
         return Diary(**dict)
 
-    async def find_by_date(self, date: date) -> Optional[Diary]:
-        result = await self.collection.find_one({"date": date})
+    async def find_by_date(self, date: date, user_id: str) -> Optional[Diary]:
+        result = await self.collection.find_one({"date": date, "user_id": user_id})
 
         if result is None:
             raise NotFoundError()

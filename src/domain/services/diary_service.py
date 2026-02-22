@@ -149,8 +149,8 @@ class DiaryService:
         await self.end_chat_session(session_id)
         return diary
 
-    async def get_diary_by_date(self, writed_at: date) -> Diary:
-        diary = await self.diary_repository.find_by_date(writed_at)
+    async def get_diary_by_date(self, writed_at: date, user: User) -> Diary:
+        diary = await self.diary_repository.find_by_date(writed_at, user.id)
         if diary is None:
             raise NotFoundError()
 

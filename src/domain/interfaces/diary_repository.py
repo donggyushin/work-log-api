@@ -15,7 +15,7 @@ class DiaryRepository(ABC):
         pass
 
     @abstractmethod
-    async def find_by_date(self, date: date) -> Optional[Diary]:
+    async def find_by_date(self, date: date, user_id: str) -> Optional[Diary]:
         pass
 
     @abstractmethod
