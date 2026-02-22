@@ -27,13 +27,26 @@ class MongoChatRepository(ChatRepository):
         _id = result.pop("_id")
         result["id"] = str(_id)
 
+        # messages 배열의 각 메시지도 _id를 id로 변환
+        if "messages" in result:
+            for message in result["messages"]:
+                if "_id" in message:
+                    message_id = message.pop("_id")
+                    message["id"] = str(message_id)
+
         return ChatSession(**result)
 
     async def add_message(self, session: ChatSession, message: ChatMessage):
         # MongoDB의 $push 연산자를 사용해 messages 배열에 추가
         # message.id는 제외하고 새로운 MongoDB _id 생성
-        message_dict = message.model_dump(exclude={"id"})
-        message_dict["_id"] = ObjectId()
+        prev_id = message.id
+
+        message_dict = message.model_dump(mode="json", exclude={"id"})
+
+        if prev_id:
+            message_dict["_id"] = ObjectId(prev_id)
+        else:
+            message_dict["_id"] = ObjectId()
 
         await self.collection.update_one(
             {"_id": ObjectId(session.id)}, {"$push": {"messages": message_dict}}
@@ -52,6 +65,13 @@ class MongoChatRepository(ChatRepository):
             raise NotFoundError()
 
         result["id"] = str(result.pop("_id"))
+
+        # messages 배열의 각 메시지도 _id를 id로 변환
+        if "messages" in result:
+            for message in result["messages"]:
+                if "_id" in message:
+                    message_id = message.pop("_id")
+                    message["id"] = str(message_id)
 
         return ChatSession(**result)
 
