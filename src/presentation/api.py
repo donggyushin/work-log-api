@@ -155,8 +155,8 @@ class DiaryThumbnailExampleResponse(BaseModel):
 async def generate_diary_thumbnail_example_image(
     diary_service: Annotated[DiaryService, Depends(get_diary_service)], diary_id: str
 ):
-    img_url = diary_service.generate_example_thumbnail(diary_id)
-    return img_url
+    img_url = await diary_service.generate_example_thumbnail(diary_id)
+    return DiaryThumbnailExampleResponse(img_url=img_url)
 
 
 class RegisterRequest(BaseModel):
