@@ -74,6 +74,14 @@ async def get_current_chat_session(
     return current_session
 
 
+@app.delete("/api/v1/chat-current-session")
+async def end_current_chat_session(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    await diary_service.end_current_session(current_user)
+
+
 class ChatSendMessageRequest(BaseModel):
     session_id: str
     message: ChatMessage
@@ -182,11 +190,9 @@ async def change_diary_thumbnail(
     except Exception as e:
         print(f"Error updating thumbnail: {str(e)}")
         import traceback
+
         traceback.print_exc()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 class RegisterRequest(BaseModel):
