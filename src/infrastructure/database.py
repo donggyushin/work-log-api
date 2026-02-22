@@ -20,7 +20,7 @@ async def connect_to_mongo():
     if mongo_url:
         # MongoDB Atlas 또는 전체 연결 문자열 사용
         mongo_uri = mongo_url
-        print("✅ Connected to MongoDB Atlas")
+        connection_type = "MongoDB Atlas"
     else:
         # 개별 환경 변수 사용 (로컬 개발)
         username = os.getenv("MONGO_INITDB_ROOT_USERNAME", "admin")
@@ -30,11 +30,19 @@ async def connect_to_mongo():
 
         # MongoDB URI 생성
         mongo_uri = f"mongodb://{username}:{password}@{host}:{port}"
-        print(f"✅ Connected to local MongoDB at {host}:{port}")
+        connection_type = f"local MongoDB at {host}:{port}"
 
     # Motor 클라이언트 생성
     db.client = AsyncIOMotorClient(mongo_uri)
     db.db = db.client["dailylog"]  # 데이터베이스 이름
+
+    # 연결 테스트 (실제로 MongoDB에 연결 시도)
+    try:
+        await db.client.admin.command('ping')
+        print(f"✅ Connected to {connection_type}")
+    except Exception as e:
+        print(f"❌ Failed to connect to {connection_type}: {e}")
+        raise
 
 
 async def close_mongo_connection():
