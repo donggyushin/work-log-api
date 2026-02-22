@@ -105,6 +105,13 @@ async def get_diary_list(
     return diaries
 
 
+@app.delete("/api/v1/diary/{diary_id}")
+async def delete_diary(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)], diary_id: str
+):
+    await diary_service.delete(diary_id)
+
+
 @app.get(
     "/api/v1/diary/{diary_id}", response_model=Diary, status_code=status.HTTP_200_OK
 )
@@ -172,8 +179,14 @@ async def change_diary_thumbnail(
     try:
         diary = await diary_service.update_thumbnail(diary_id, request.img_url)
         return diary
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f"Error updating thumbnail: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 class RegisterRequest(BaseModel):

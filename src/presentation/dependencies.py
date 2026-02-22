@@ -15,6 +15,7 @@ from src.domain.interfaces.email_verification_code_repository import (
 )
 from src.domain.interfaces.hasher import Hasher
 from src.domain.interfaces.image_generator import ImageGenerator
+from src.domain.interfaces.image_storage import ImageStorage
 from src.domain.interfaces.jwt_provider import JWTProvider
 from src.domain.interfaces.random_name_generator import RandomNameGenerator
 from src.domain.interfaces.refresh_token_repository import RefreshTokenRepository
@@ -25,6 +26,7 @@ from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
 from src.infrastructure.bcrypt_hasher import BcryptHasher
+from src.infrastructure.cloudflare_r2_storage import CloudflareR2Storage
 from src.infrastructure.dall_e_image_generator import DallEImageGenerator
 from src.infrastructure.database import get_database
 from src.infrastructure.faker_random_name_generator import FakerRandomNameGenerator
@@ -155,13 +157,20 @@ def get_image_generator() -> ImageGenerator:
     return DallEImageGenerator()
 
 
+def get_image_storage() -> ImageStorage:
+    return CloudflareR2Storage()
+
+
 def get_diary_service(
     diary_repository: Annotated[DiaryRepository, Depends(get_diary_repository)],
     chat_repository: Annotated[ChatRepository, Depends(get_chat_repository)],
     ai_chat_bot: Annotated[AIChatBot, Depends(get_ai_chat_bot)],
     image_generator: Annotated[ImageGenerator, Depends(get_image_generator)],
+    image_storage: Annotated[ImageStorage, Depends(get_image_storage)],
 ) -> DiaryService:
-    return DiaryService(diary_repository, chat_repository, ai_chat_bot, image_generator)
+    return DiaryService(
+        diary_repository, chat_repository, ai_chat_bot, image_generator, image_storage
+    )
 
 
 # HTTPBearer security scheme

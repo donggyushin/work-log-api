@@ -1,7 +1,9 @@
 import re
+import uuid
 from datetime import date
 from typing import List, Optional
 
+import httpx
 from bson import ObjectId
 from src.domain.entities.chat import ChatMessage, ChatSession, MessageRole
 from src.domain.entities.diary import Diary
@@ -11,6 +13,7 @@ from src.domain.interfaces.ai_chat_bot import AIChatBot
 from src.domain.interfaces.chat_repository import ChatRepository
 from src.domain.interfaces.diary_repository import DiaryRepository
 from src.domain.interfaces.image_generator import ImageGenerator
+from src.domain.interfaces.image_storage import ImageStorage
 
 
 class DiaryService:
@@ -20,19 +23,41 @@ class DiaryService:
         chat_repository: ChatRepository,
         ai_chat_bot: AIChatBot,
         image_generator: ImageGenerator,
+        image_storage: ImageStorage,
     ):
         self.diary_repository = diary_repository
         self.chat_repository = chat_repository
         self.ai_chat_bot = ai_chat_bot
         self.image_generator = image_generator
+        self.image_storage = image_storage
 
-    async def update_thumbnail(self, diary_id: str, thumbnail_url) -> Diary:
+    async def delete(self, diary_id: str):
+        found_diary = await self.diary_repository.find_by_id(diary_id)
+        if found_diary is None:
+            raise NotFoundError()
+
+        await self.diary_repository.delete(found_diary)
+
+    async def update_thumbnail(self, diary_id: str, thumbnail_url: str) -> Diary:
         found_diary = await self.diary_repository.find_by_id(diary_id)
 
         if found_diary is None:
             raise NotFoundError()
 
-        found_diary.thumbnail_url = thumbnail_url
+        # Download image from the provided URL (disable SSL verification for Docker)
+        async with httpx.AsyncClient(verify=False) as client:
+            response = await client.get(thumbnail_url)
+            response.raise_for_status()
+            image_data = response.content
+
+        # Generate unique filename
+        file_name = f"diary-thumbnails/{diary_id}-{uuid.uuid4()}.png"
+
+        # Upload to R2 and get permanent URL
+        permanent_url = await self.image_storage.upload(image_data, file_name)
+
+        # Update diary with permanent URL
+        found_diary.thumbnail_url = permanent_url
 
         await self.diary_repository.update(found_diary)
 
@@ -47,19 +72,45 @@ class DiaryService:
         diary_content = diary.content
 
         img_url = await self.image_generator.generate(
-            prompt=f"""Create a minimalist, dreamlike scene based on this diary entry.
-Use an aerial top-down view or bird's eye perspective.
-The image should be clean, simple, and emotional with pastel colors.
-Style: Soft, peaceful, minimalist photography or illustration.
-Choose main color based on the diary's emotion:
-- Love/Romance: Soft pastel pink
-- Sadness/Melancholy: Soft pastel blue
-- Self-reflection: Warm earth tones
-- Passion/Energy: Soft pastel red or orange
-- Joy/Gratitude: Warm pastel yellow or gold
+            prompt=f"""Create a detailed anime-style background illustration inspired by this diary entry.
 
-Include minimal elements (person lying on grass, simple landscape, natural scenery).
-Keep it dreamy, peaceful, and cinematic.
+Style: Vintage Japanese anime background art with clean line work and atmospheric depth. Similar to Studio Ghibli, Makoto Shinkai, or classic anime background paintings.
+
+Visual approach:
+- Detailed interior or exterior scene with clear perspective and depth
+- Clean, precise line art with careful attention to architectural details
+- Atmospheric lighting that conveys the mood and time of day
+- Include environmental storytelling elements (objects, furniture, nature)
+- Realistic spatial composition with proper perspective
+- Cinematic framing - could be a still from an anime film
+
+Mood and atmosphere (based on diary emotion):
+- Love/Romance: Warm sunset light, cozy intimate spaces, soft glows
+- Sadness/Melancholy: Overcast skies, rain, muted indoor lighting, solitary spaces
+- Self-reflection: Quiet contemplative settings, window views, gentle natural light
+- Passion/Energy: Dynamic lighting, vibrant skies, energetic color contrasts
+- Joy/Gratitude: Bright clear skies, sunlit rooms, cheerful atmosphere
+
+Scene elements to consider:
+- Windows with views (sky, nature, cityscape)
+- Indoor spaces with character (rooms, cafes, libraries)
+- Natural elements (trees, clouds, water, plants)
+- Subtle hints of life (a cup of tea, an open book, a pet)
+- Time of day reflected in lighting (morning, afternoon, evening, night)
+
+Color palette:
+- Use rich, saturated colors typical of anime backgrounds
+- Strong contrast between light and shadow
+- Atmospheric haze or light effects
+- Colors should match the emotional tone of the diary
+
+Technical style:
+- Detailed but painterly - not photorealistic
+- Clean lines combined with soft color fills
+- Depth of field - some areas sharp, some soft
+- Cinematic composition
+
+Create a scene that feels like a quiet moment frozen in time, where the viewer can imagine themselves in this space, reflecting on the diary's emotional content.
 
 Diary content:
 {diary_content}"""
@@ -160,7 +211,7 @@ Diary content:
 
         await self.chat_repository.add_message(session, new_message)
         reply = await self.ai_chat_bot.send(session)
-        await self.chat_repository.add_message(session, reply)
+        reply = await self.chat_repository.add_message(session, reply)
         return reply
 
     async def write_diary(self, session_id: str, message_id: str) -> Diary:

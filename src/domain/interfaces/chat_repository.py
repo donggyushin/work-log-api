@@ -14,7 +14,9 @@ class ChatRepository(ABC):
         pass
 
     @abstractmethod
-    async def add_message(self, session: ChatSession, message: ChatMessage):
+    async def add_message(
+        self, session: ChatSession, message: ChatMessage
+    ) -> ChatMessage:
         pass
 
     @abstractmethod

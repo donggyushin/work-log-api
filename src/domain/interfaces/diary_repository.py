@@ -27,3 +27,7 @@ class DiaryRepository(ABC):
     @abstractmethod
     async def update(self, diary: Diary) -> Diary:
         pass
+
+    @abstractmethod
+    async def delete(self, diary: Diary):
+        pass
