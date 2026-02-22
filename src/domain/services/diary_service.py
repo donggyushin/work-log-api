@@ -102,7 +102,8 @@ class DiaryService:
         new_session = await self.chat_repository.create_session(new_session)
         return new_session
 
-    async def end_chat_session(self, session: ChatSession):
+    async def end_chat_session(self, session_id: str):
+        session = await self.chat_repository.find_session(session_id)
         await self.chat_repository.end_session(session)
 
     async def send_chat_message(
@@ -145,6 +146,7 @@ class DiaryService:
         )
 
         diary = await self.diary_repository.create(diary)
+        await self.end_chat_session(session_id)
         return diary
 
     async def get_diary_by_date(self, writed_at: date) -> Diary:
