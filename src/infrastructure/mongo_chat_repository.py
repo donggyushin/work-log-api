@@ -30,8 +30,9 @@ class MongoChatRepository(ChatRepository):
         # messages 배열의 각 메시지도 _id를 id로 변환
         if "messages" in result:
             for message in result["messages"]:
-                message_id = message.pop("_id")
-                message["id"] = str(message_id)
+                if "_id" in message:
+                    message_id = message.pop("_id")
+                    message["id"] = str(message_id)
 
         return ChatSession(**result)
 
@@ -62,8 +63,9 @@ class MongoChatRepository(ChatRepository):
         # messages 배열의 각 메시지도 _id를 id로 변환
         if "messages" in result:
             for message in result["messages"]:
-                message_id = message.pop("_id")
-                message["id"] = str(message_id)
+                if "_id" in message:
+                    message_id = message.pop("_id")
+                    message["id"] = str(message_id)
 
         return ChatSession(**result)
 
