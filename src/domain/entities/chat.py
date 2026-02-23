@@ -6,7 +6,7 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 
 
-class MessageRole(Enum):
+class MessageRole(str, Enum):
     system = "SYSTEM"
     assistant = "ASSISTANT"
     user = "USER"
