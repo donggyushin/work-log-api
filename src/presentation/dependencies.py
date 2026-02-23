@@ -17,6 +17,7 @@ from src.domain.interfaces.hasher import Hasher
 from src.domain.interfaces.image_generator import ImageGenerator
 from src.domain.interfaces.image_storage import ImageStorage
 from src.domain.interfaces.jwt_provider import JWTProvider
+from src.domain.interfaces.payments_repository import PaymentsRepository
 from src.domain.interfaces.random_name_generator import RandomNameGenerator
 from src.domain.interfaces.refresh_token_repository import RefreshTokenRepository
 from src.domain.interfaces.user_repository import UserRepository
@@ -35,6 +36,7 @@ from src.infrastructure.mongo_diary_repository import MongoDiaryRepository
 from src.infrastructure.mongo_email_verification_code_repository import (
     MongoEmailVerificationCodeRepository,
 )
+from src.infrastructure.mongo_payments_repository import MongoPaymentsRepository
 from src.infrastructure.mongo_refresh_token_repository import (
     MongoRefreshTokenRepository,
 )
@@ -53,6 +55,12 @@ def get_db() -> AsyncIOMotorDatabase:
             detail="Database connection not available",
         )
     return db
+
+
+def get_payments_repository(
+    db: Annotated[AsyncIOMotorDatabase, Depends(get_db)],
+) -> PaymentsRepository:
+    return MongoPaymentsRepository(db.client)
 
 
 def get_diary_repository(
@@ -167,9 +175,19 @@ def get_diary_service(
     ai_chat_bot: Annotated[AIChatBot, Depends(get_ai_chat_bot)],
     image_generator: Annotated[ImageGenerator, Depends(get_image_generator)],
     image_storage: Annotated[ImageStorage, Depends(get_image_storage)],
+    payments_repository: Annotated[
+        PaymentsRepository, Depends(get_payments_repository)
+    ],
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> DiaryService:
     return DiaryService(
-        diary_repository, chat_repository, ai_chat_bot, image_generator, image_storage
+        diary_repository,
+        chat_repository,
+        ai_chat_bot,
+        image_generator,
+        image_storage,
+        payments_repository,
+        user_repository,
     )
 
 

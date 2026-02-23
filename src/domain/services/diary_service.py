@@ -14,6 +14,8 @@ from src.domain.interfaces.chat_repository import ChatRepository
 from src.domain.interfaces.diary_repository import DiaryRepository
 from src.domain.interfaces.image_generator import ImageGenerator
 from src.domain.interfaces.image_storage import ImageStorage
+from src.domain.interfaces.payments_repository import PaymentsRepository
+from src.domain.interfaces.user_repository import UserRepository
 
 
 class DiaryService:
@@ -24,12 +26,16 @@ class DiaryService:
         ai_chat_bot: AIChatBot,
         image_generator: ImageGenerator,
         image_storage: ImageStorage,
+        payments_repository: PaymentsRepository,
+        user_repository: UserRepository,
     ):
         self.diary_repository = diary_repository
         self.chat_repository = chat_repository
         self.ai_chat_bot = ai_chat_bot
         self.image_generator = image_generator
         self.image_storage = image_storage
+        self.payments_repository = payments_repository
+        self.user_repository = user_repository
 
     async def delete(self, diary_id: str):
         found_diary = await self.diary_repository.find_by_id(diary_id)
@@ -247,6 +253,26 @@ Diary content:
 
         diary = await self.diary_repository.create(diary)
         await self.end_chat_session(session_id)
+
+        payments_logs = await self.payments_repository.find_by_user_id(
+            target_message.user_id, None, 1
+        )
+
+        is_user_free_trial = True
+
+        if payments_logs.__len__() > 0:
+            payments = payments_logs[0]
+            if payments.end_date >= date.today():
+                is_user_free_trial = False
+
+        if is_user_free_trial:
+            # user 의 free_trial_count 를 1 줄여야 함
+            current_user = await self.user_repository.find_by_id(target_message.user_id)
+            if current_user is None:
+                raise NotFoundError()
+            current_user.free_trial_count -= 1
+            await self.user_repository.update(current_user)
+
         return diary
 
     async def get_diary_by_date(self, writed_at: date, user: User) -> Diary:

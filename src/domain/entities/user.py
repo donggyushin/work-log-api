@@ -21,3 +21,5 @@ class User(BaseModel):
     birth: Optional[date] = Field(default=None, description="Date of birth")
     gender: Optional[Gender] = Field(default=None, description="User gender")
     email_verified: bool = Field(default=False, description="Is user email verified")
+    free_trial_count: int = Field(default=3)
+    is_admin: bool = Field(default=False)
