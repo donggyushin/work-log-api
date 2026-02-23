@@ -175,9 +175,19 @@ def get_diary_service(
     ai_chat_bot: Annotated[AIChatBot, Depends(get_ai_chat_bot)],
     image_generator: Annotated[ImageGenerator, Depends(get_image_generator)],
     image_storage: Annotated[ImageStorage, Depends(get_image_storage)],
+    payments_repository: Annotated[
+        PaymentsRepository, Depends(get_payments_repository)
+    ],
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> DiaryService:
     return DiaryService(
-        diary_repository, chat_repository, ai_chat_bot, image_generator, image_storage
+        diary_repository,
+        chat_repository,
+        ai_chat_bot,
+        image_generator,
+        image_storage,
+        payments_repository,
+        user_repository,
     )
 
 
