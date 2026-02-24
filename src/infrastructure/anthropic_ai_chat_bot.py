@@ -14,7 +14,8 @@ class AnthropicAIChatBot(AIChatBot):
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
         self.client = AsyncAnthropic(api_key=api_key)
-        self.model = "claude-sonnet-4-5-20250929"
+        # self.model = "claude-sonnet-4-5-20250929"
+        self.model = "claude-haiku-4-5-20251001"
 
     async def send(self, chat: ChatSession) -> ChatMessage:
         # ChatSession의 메시지를 Anthropic API 형식으로 변환
