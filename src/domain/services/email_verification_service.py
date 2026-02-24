@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from src.domain.entities.email_verification_code import EmailVerificationCode
 from src.domain.entities.user import User
@@ -122,7 +123,7 @@ class EmailVerificationService:
         """
 
         await self.email_sender.send_email(
-            sender="onboarding@resend.dev",  # Resend test email (free to use)
+            sender=os.getenv("EMAIL_FROM", "onboarding@resend.dev"),
             to=user.email,
             title="Daily Log - 이메일 인증 코드",
             contents=html_content,
