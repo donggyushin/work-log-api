@@ -23,6 +23,7 @@ from src.domain.interfaces.refresh_token_repository import RefreshTokenRepositor
 from src.domain.interfaces.user_repository import UserRepository
 from src.domain.interfaces.verification_code_generator import VerificationCodeGenerator
 from src.domain.services.auth_service import AuthService
+from src.domain.services.change_password_service import ChangePasswordService
 from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
@@ -137,6 +138,20 @@ def get_auth_service(
         refresh_token_repository=refresh_token_repo,
         random_name_generator=random_name_generator,
     )
+
+
+def get_change_password_service(
+    email_verification_code_repository: Annotated[
+        EmailVerificationCodeRepository, Depends(get_email_verification_code_repository)
+    ],
+    verification_code_generator: Annotated[
+        VerificationCodeGenerator, Depends(get_verification_code_generator)
+    ],
+) -> ChangePasswordService:
+    service = ChangePasswordService(
+        email_verification_code_repository, verification_code_generator
+    )
+    return service
 
 
 def get_email_verification_service(
