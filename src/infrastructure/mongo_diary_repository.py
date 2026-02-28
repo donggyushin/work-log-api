@@ -60,10 +60,10 @@ class MongoDiaryRepository(DiaryRepository):
         if cursor_id:
             cursor_diary = await self.collection.find_one({"_id": ObjectId(cursor_id)})
             if cursor_diary:
-                query["date"] = {"$lt": cursor_diary["date"]}
+                query["writed_at"] = {"$lt": cursor_diary["writed_at"]}
 
         # 날짜 기준 내림차순 정렬 (최신 일기가 먼저)
-        cursor = self.collection.find(query).sort("date", -1).limit(size)
+        cursor = self.collection.find(query).sort("writed_at", -1).limit(size)
         results = await cursor.to_list(length=size)
 
         # MongoDB 문서를 Diary 엔티티로 변환
