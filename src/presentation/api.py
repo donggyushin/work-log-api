@@ -464,3 +464,21 @@ async def change_password(
         )
     except Exception as e:
         raise e
+
+
+class GetNextAndPrevDiariesResponse(BaseModel):
+    next: Optional[Diary]
+    prev: Optional[Diary]
+
+
+@app.get("/api/v1/diary/next_prev/{current_diary_id}")
+async def get_next_prev_diaries(
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)],
+    current_diary_id: str,
+) -> GetNextAndPrevDiariesResponse:
+    try:
+        result = await diary_service.find_next_prev_diary(current_diary_id)
+        response = GetNextAndPrevDiariesResponse(next=result[0], prev=result[1])
+        return response
+    except Exception as e:
+        raise e

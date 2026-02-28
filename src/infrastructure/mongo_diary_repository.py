@@ -73,3 +73,35 @@ class MongoDiaryRepository(DiaryRepository):
             diaries.append(Diary(**result))
 
         return diaries
+
+    async def get_next_diary(self, diary: Diary) -> Optional[Diary]:
+        """현재 일기보다 더 최신 날짜의 일기 반환 (같은 유저)"""
+        result = await self.collection.find_one(
+            {
+                "user_id": diary.user_id,
+                "writed_at": {"$gt": diary.writed_at.isoformat()},
+            },
+            sort=[("writed_at", 1)],  # 오름차순 정렬 (가장 가까운 다음 일기)
+        )
+
+        if result is None:
+            return None
+
+        result["id"] = str(result.pop("_id"))
+        return Diary(**result)
+
+    async def get_prev_diary(self, diary: Diary) -> Optional[Diary]:
+        """현재 일기보다 이전 날짜의 일기 반환 (같은 유저)"""
+        result = await self.collection.find_one(
+            {
+                "user_id": diary.user_id,
+                "writed_at": {"$lt": diary.writed_at.isoformat()},
+            },
+            sort=[("writed_at", -1)],  # 내림차순 정렬 (가장 가까운 이전 일기)
+        )
+
+        if result is None:
+            return None
+
+        result["id"] = str(result.pop("_id"))
+        return Diary(**result)
