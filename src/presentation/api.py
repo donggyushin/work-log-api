@@ -373,15 +373,20 @@ class VerifyEmailRequest(BaseModel):
     code: str
 
 
+class VerifiyEmailResponse(BaseModel):
+    token: str
+
+
 @app.post("/api/v1/auth/password/verify_email")
 async def verify_email_to_change_password(
     request: VerifyEmailRequest,
     current_user: Annotated[User, Depends(get_current_user)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
-) -> str:
+) -> VerifiyEmailResponse:
     try:
         token = await auth_service.verify_change_password(current_user, request.code)
-        return token
+        response = VerifiyEmailResponse(token=token)
+        return response
     except Exception as e:
         raise e
 

@@ -29,14 +29,14 @@ class AuthService:
         hasher: Hasher,
         refresh_token_repository: RefreshTokenRepository,
         random_name_generator: RandomNameGenerator,
-        email_verification_repository: EmailVerificationCodeRepository,
+        email_verification_code_repository: EmailVerificationCodeRepository,
     ):
         self.user_repository = user_repository
         self.jwt_provider = jwt_provider
         self.hasher = hasher
         self.refresh_token_repository = refresh_token_repository
         self.random_name_generator = random_name_generator
-        self.email_verification_repository = email_verification_repository
+        self.email_verification_code_repository = email_verification_code_repository
 
     async def change_password(self, current_user: User, token: str, new_password: str):
         verified = self.jwt_provider.verify_token(token)
@@ -51,8 +51,10 @@ class AuthService:
         await self.user_repository.update(current_user)
 
     async def verify_change_password(self, current_user: User, code: str) -> str:
-        verification_code = await self.email_verification_repository.find_by_user_id(
-            current_user.id
+        verification_code = (
+            await self.email_verification_code_repository.find_by_user_id(
+                current_user.id
+            )
         )
 
         if verification_code is None:
@@ -61,7 +63,7 @@ class AuthService:
         if verification_code.code != code:
             raise NotCorrectError()
 
-        await self.email_verification_repository.delete_by_user_id(current_user.id)
+        await self.email_verification_code_repository.delete_by_user_id(current_user.id)
 
         access_token = self.jwt_provider.generate_access_token(current_user.id)
         return access_token
