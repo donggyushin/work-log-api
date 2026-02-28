@@ -79,6 +79,7 @@ class ChangePasswordService:
             expired_at=datetime.now() + timedelta(minutes=10),
         )
 
+        await self.email_verification_code_repository.delete_by_user_id(user.id)
         await self.email_verification_code_repository.create(email_verification_code)
 
         html_content = f"""
