@@ -17,12 +17,12 @@ class ImageStorage(ABC):
         pass
 
     @abstractmethod
-    async def delete(self, file_name: str) -> None:
+    async def delete(self, file_name_or_url: str) -> None:
         """
         Delete image from storage.
 
         Args:
-            file_name: Name of the file to delete
+            file_name_or_url: File name (e.g., "image.png") or full URL (e.g., "https://domain.com/image.png")
 
         Raises:
             Exception: If deletion fails
