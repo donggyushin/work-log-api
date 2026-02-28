@@ -19,11 +19,13 @@ from src.domain.exceptions import (
     UserNotFoundError,
 )
 from src.domain.services.auth_service import AuthService
+from src.domain.services.chat_history_service import ChatHistoryService
 from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.database import connect_to_mongo, close_mongo_connection
 from src.presentation.dependencies import (
     get_auth_service,
+    get_chat_history_service,
     get_current_user,
     get_diary_service,
     get_email_verification_service,
@@ -111,6 +113,20 @@ async def get_diary_list(
 ):
     diaries = await diary_service.get_diary_list(current_user, cursor_id, size)
     return diaries
+
+
+@app.get("/api/v1/diary/chat_session/{diary_id}", response_model=ChatSession)
+async def get_chat_session_from_diary_id(
+    chat_history_service: Annotated[
+        ChatHistoryService, Depends(get_chat_history_service)
+    ],
+    diary_id: str,
+):
+    try:
+        chat_session = await chat_history_service.find_session(diary_id)
+        return chat_session
+    except Exception as e:
+        raise e
 
 
 @app.delete("/api/v1/diary/{diary_id}")
