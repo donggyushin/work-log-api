@@ -10,11 +10,12 @@ This is a FastAPI-based AI-powered diary/daily log API with MongoDB backend, con
 - User authentication (JWT-based with access/refresh tokens)
 - Auto-generated user nicknames (형용사 + 명사 pattern, e.g., "행복한루피")
 - Email verification via Resend
+- User profile management (username, birth, gender, profile image)
 - AI-powered diary writing using Anthropic Claude (Sonnet 4.5)
 - Conversational diary creation through chat sessions
 - AI generates diary entries in the style of Korean author Lee Yeongdo (이영도)
 - AI-generated diary thumbnails using OpenAI DALL-E 3
-- Image storage via Cloudflare R2 (S3-compatible)
+- Image storage and management via Cloudflare R2 (S3-compatible)
 
 ## Development Commands
 
@@ -86,6 +87,7 @@ src/
    - `AuthService`: User registration (with auto-generated nicknames), login, token refresh
    - `EmailVerificationService`: Send/verify email codes
    - `DiaryService`: AI chat session management, diary generation
+   - `UserProfileService`: User profile updates, profile image management (upload/delete with automatic cleanup)
 4. **Domain Exceptions**: Business rule violations raise domain exceptions (`EmailAlreadyExistsError`, `NotFoundError`, `ExpiredError`)
 
 **MongoDB Integration Pattern:**
@@ -109,16 +111,20 @@ src/
   [CONTENT_START]내용[CONTENT_END]
   ```
 
-**AI Image Generation Pattern:**
+**AI Image Generation & Storage Pattern:**
 - `ImageGenerator` interface abstracts image generation provider (currently OpenAI DALL-E 3)
 - `ImageStorage` interface abstracts storage provider (currently Cloudflare R2)
+  - `upload(image_data, file_name)`: Upload image and return public URL
+  - `delete(file_name_or_url)`: Delete image (accepts both URL and filename)
 - `DiaryService` generates thumbnails based on diary title and content
-- Generated images are stored in R2 and public URL is saved with diary
+- `UserProfileService` manages profile images with automatic old image cleanup
+- Generated images are stored in R2 and public URL is saved with diary/user profile
 - R2 storage uses boto3 S3 client with Cloudflare-specific configuration:
   - Endpoint format: `https://{account_id}.r2.cloudflarestorage.com`
   - Region set to "auto" (R2 requirement)
   - SSL verification disabled in Docker environment
   - Public URLs via R2.dev domain or custom domain
+  - Smart deletion: `delete()` method accepts both full URLs and filenames for flexibility
 
 ### Technology Stack
 - **Framework**: FastAPI with Uvicorn ASGI server
@@ -231,6 +237,35 @@ The project is designed to be deployed on **Railway** platform with Docker.
 Same as above, but replace MongoDB variables with:
 - `MONGO_URL` - MongoDB Atlas connection string (e.g., `mongodb+srv://user:pass@cluster.mongodb.net/dailylog`)
 
+## API Endpoints
+
+### User Profile Management
+- **GET /api/v1/me** - Get current user profile (requires authentication)
+- **PUT /api/v1/me** - Update basic profile (username, birth, gender)
+  - Request body: `{ "username": "string", "birth": "YYYY-MM-DD", "gender": "MALE|FEMALE|OTHER" }`
+- **PUT /api/v1/me/profile-image** - Upload/update profile image
+  - Content-Type: `multipart/form-data`
+  - Body: `file` (image file)
+  - Automatically deletes old image from R2 if exists
+  - Generates UUID-based filename to prevent collisions
+- **DELETE /api/v1/me/profile-image** - Delete profile image
+  - Removes image from R2 storage
+  - Sets `profile_image_url` to `None`
+
+### Chat & Diary Management
+- **GET /api/v1/chat-current-session** - Get or create active chat session
+- **POST /api/v1/chat-message** - Send message in chat session
+- **POST /api/v1/write-diary** - Generate diary from chat session
+- **GET /api/v1/diaries** - Get user's diaries with pagination
+- **GET /api/v1/chat-session/{diary_id}** - Get chat session by diary ID
+
+### Authentication
+- **POST /api/v1/register** - User registration (auto-generates nickname)
+- **POST /api/v1/login** - User login (returns access + refresh tokens)
+- **POST /api/v1/refresh** - Refresh access token
+- **POST /api/v1/send-verification-code** - Send email verification code
+- **POST /api/v1/verify-email** - Verify email with code
+
 ## Code Conventions
 
 When extending this codebase:
@@ -244,6 +279,7 @@ When extending this codebase:
 - **API Routes**: Add routes in `src/presentation/api.py` or create new router modules
   - Use `Depends()` for dependency injection from `src/presentation/dependencies.py`
   - Handle domain exceptions with try/except, convert to HTTPException with appropriate status codes
+  - For file uploads, use FastAPI's `UploadFile = File(...)` parameter
   - **CRITICAL**: When adding dependencies to a service constructor, ALWAYS update the corresponding factory function in `dependencies.py`. Type checking will catch this mismatch.
 - **Exceptions**: Domain business rule violations raise exceptions from `src/domain/exceptions.py`
   - Common exceptions: `NotFoundError`, `NotCorrectError`, `ExpiredError`, `EmailAlreadyExistsError`
@@ -254,7 +290,9 @@ When extending this codebase:
 ## Domain Models
 
 **Core Entities:**
-- `User`: User account with email verification status
+- `User`: User account with email verification status and profile information
+  - Fields: `id`, `email`, `username`, `birth`, `gender`, `profile_image_url`, `email_verified`, `free_trial_count`, `is_admin`
+  - Method: `update_basic_profile(updated_user)` - Updates username, birth, and gender
 - `ChatMessage`: Single message in a chat (role: SYSTEM/USER/ASSISTANT)
 - `ChatSession`: Conversation session with multiple messages
 - `Diary`: AI-generated diary entry with optional AI-generated thumbnail
@@ -264,6 +302,12 @@ When extending this codebase:
 **Key Services:**
 - `AuthService`: Registration (auto-generates nickname via `RandomNameGenerator`), login, token management
 - `EmailVerificationService`: Send and verify email codes (10-minute expiration)
+- `UserProfileService`: User profile management
+  - `update_user_profile(current_user, updated_user)`: Update basic profile info (username, birth, gender)
+  - `update_profile_img(current_user, image_data)`: Upload/update profile image with automatic old image cleanup
+    - Deletes old image from R2 if exists
+    - Uploads new image with UUID-based filename
+    - Pass `None` for `image_data` to delete without uploading new image
 - `DiaryService`: Manage chat sessions and generate diaries
   - `get_chat_session()`: Get or create active session with system prompt
   - `send_chat_message()`: User sends message, AI responds
@@ -281,3 +325,5 @@ When extending this codebase:
   - Uses boto3 with Cloudflare-specific endpoint configuration
   - Supports custom domains or R2.dev public URLs
   - SSL verification disabled for Docker environment compatibility
+  - `upload()`: Returns public URL of uploaded image
+  - `delete()`: Smart deletion accepts both full URLs (e.g., `https://domain.com/file.png`) and filenames (e.g., `file.png`)
