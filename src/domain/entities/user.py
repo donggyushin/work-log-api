@@ -23,3 +23,9 @@ class User(BaseModel):
     email_verified: bool = Field(default=False, description="Is user email verified")
     free_trial_count: int = Field(default=3)
     is_admin: bool = Field(default=False)
+    profile_image_url: Optional[str] = Field(default=None)
+
+    def update_basic_profile(self, updated_user: User):
+        self.username = updated_user.username
+        self.birth = updated_user.birth
+        self.gender = updated_user.gender

@@ -26,6 +26,7 @@ from src.domain.services.auth_service import AuthService
 from src.domain.services.chat_history_service import ChatHistoryService
 from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
+from src.domain.services.user_profile_service import UserProfileService
 from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
 from src.infrastructure.bcrypt_hasher import BcryptHasher
 from src.infrastructure.cloudflare_r2_storage import CloudflareR2Storage
@@ -175,6 +176,13 @@ def get_chat_history_service(
     diary_repository: Annotated[DiaryRepository, Depends(get_diary_repository)],
 ) -> ChatHistoryService:
     service = ChatHistoryService(chat_repository, diary_repository)
+    return service
+
+
+def get_user_profile_service(
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+) -> UserProfileService:
+    service = UserProfileService(user_repository)
     return service
 
 
