@@ -19,6 +19,7 @@ from src.domain.exceptions import (
     UserNotFoundError,
 )
 from src.domain.services.auth_service import AuthService
+from src.domain.services.change_password_service import ChangePasswordService
 from src.domain.services.chat_history_service import ChatHistoryService
 from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
@@ -26,6 +27,7 @@ from src.domain.services.user_profile_service import UserProfileService
 from src.infrastructure.database import connect_to_mongo, close_mongo_connection
 from src.presentation.dependencies import (
     get_auth_service,
+    get_change_password_service,
     get_chat_history_service,
     get_current_user,
     get_diary_service,
@@ -353,42 +355,8 @@ async def send_email_verification_code(
     await email_verification_service.send_verification_code(current_user)
 
 
-class ChangePasswordRequest(BaseModel):
-    token: str
-    new_password: str
-
-
-@app.patch("/api/v1/auth/password")
-async def change_password(
-    current_user: Annotated[User, Depends(get_current_user)],
-    auth_service: Annotated[AuthService, Depends(get_auth_service)],
-    request: ChangePasswordRequest,
-):
-    await auth_service.change_password(
-        current_user, request.token, request.new_password
-    )
-
-
 class VerifyEmailRequest(BaseModel):
     code: str
-
-
-class VerifiyEmailResponse(BaseModel):
-    token: str
-
-
-@app.post("/api/v1/auth/password/verify_email")
-async def verify_email_to_change_password(
-    request: VerifyEmailRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
-    auth_service: Annotated[AuthService, Depends(get_auth_service)],
-) -> VerifiyEmailResponse:
-    try:
-        token = await auth_service.verify_change_password(current_user, request.code)
-        response = VerifiyEmailResponse(token=token)
-        return response
-    except Exception as e:
-        raise e
 
 
 @app.post("/api/v1/verify_email")
@@ -434,3 +402,65 @@ async def refresh_token(
     result = await auth_service.refresh_token(request.refreshToken)
 
     return AuthTokenResponse(**result)
+
+
+class EmailVerificationCodeForChangingPasswordRequest(BaseModel):
+    email: str
+
+
+@app.post("/api/v1/change_password/email_verification_code")
+async def request_email_verification_code_for_changing_password(
+    change_password_service: Annotated[
+        ChangePasswordService, Depends(get_change_password_service)
+    ],
+    request: EmailVerificationCodeForChangingPasswordRequest,
+):
+    try:
+        await change_password_service.request_email_verification_code(request.email)
+    except Exception as e:
+        raise e
+
+
+class EmailVerifyForChangingPasswordRequest(BaseModel):
+    email: str
+    code: str
+
+
+class EmailVerifyForChangingPasswordResponse(BaseModel):
+    token: str
+
+
+@app.post("/api/v1/change_password/verify")
+async def verify_email_verification_code_for_changing_password(
+    request: EmailVerifyForChangingPasswordRequest,
+    change_password_service: Annotated[
+        ChangePasswordService, Depends(get_change_password_service)
+    ],
+) -> EmailVerifyForChangingPasswordResponse:
+    try:
+        token = await change_password_service.verify(request.email, request.code)
+        response = EmailVerifyForChangingPasswordResponse(token=token)
+        return response
+
+    except Exception as e:
+        raise e
+
+
+class ChangePasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
+@app.patch("/api/v1/change_password")
+async def change_password(
+    change_password_service: Annotated[
+        ChangePasswordService, Depends(get_change_password_service)
+    ],
+    request: ChangePasswordRequest,
+):
+    try:
+        await change_password_service.change_password(
+            request.token, request.new_password
+        )
+    except Exception as e:
+        raise e

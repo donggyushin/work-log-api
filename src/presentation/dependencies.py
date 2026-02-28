@@ -23,6 +23,7 @@ from src.domain.interfaces.refresh_token_repository import RefreshTokenRepositor
 from src.domain.interfaces.user_repository import UserRepository
 from src.domain.interfaces.verification_code_generator import VerificationCodeGenerator
 from src.domain.services.auth_service import AuthService
+from src.domain.services.change_password_service import ChangePasswordService
 from src.domain.services.chat_history_service import ChatHistoryService
 from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
@@ -130,9 +131,6 @@ def get_auth_service(
     random_name_generator: Annotated[
         RandomNameGenerator, Depends(get_random_name_generator)
     ],
-    email_verification_code_repository: Annotated[
-        EmailVerificationCodeRepository, Depends(get_email_verification_code_repository)
-    ],
 ) -> AuthService:
     """Get auth service instance with all dependencies injected"""
     return AuthService(
@@ -141,7 +139,6 @@ def get_auth_service(
         hasher=hasher,
         refresh_token_repository=refresh_token_repo,
         random_name_generator=random_name_generator,
-        email_verification_code_repository=email_verification_code_repository,
     )
 
 
@@ -161,6 +158,30 @@ def get_email_verification_service(
         email_verification_code_repository,
         user_repository,
     )
+
+
+def get_change_password_service(
+    email_verification_code_repository: Annotated[
+        EmailVerificationCodeRepository, Depends(get_email_verification_code_repository)
+    ],
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+    verification_code_generator: Annotated[
+        VerificationCodeGenerator, Depends(get_verification_code_generator)
+    ],
+    email_sender: Annotated[EmailSender, Depends(get_email_sender)],
+    jwt_provider: Annotated[JWTProvider, Depends(get_jwt_provider)],
+    hasher: Annotated[Hasher, Depends(get_hasher)],
+):
+    service = ChangePasswordService(
+        email_verification_code_repository,
+        user_repository,
+        verification_code_generator,
+        email_sender,
+        jwt_provider,
+        hasher,
+    )
+
+    return service
 
 
 def get_ai_chat_bot() -> AIChatBot:
