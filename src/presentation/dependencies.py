@@ -181,8 +181,9 @@ def get_chat_history_service(
 
 def get_user_profile_service(
     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+    image_storage: Annotated[ImageStorage, Depends(get_image_storage)],
 ) -> UserProfileService:
-    service = UserProfileService(user_repository)
+    service = UserProfileService(user_repository, image_storage)
     return service
 
 

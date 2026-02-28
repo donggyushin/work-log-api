@@ -15,3 +15,16 @@ class ImageStorage(ABC):
             str: Public URL of the uploaded image
         """
         pass
+
+    @abstractmethod
+    async def delete(self, file_name_or_url: str) -> None:
+        """
+        Delete image from storage.
+
+        Args:
+            file_name_or_url: File name (e.g., "image.png") or full URL (e.g., "https://domain.com/image.png")
+
+        Raises:
+            Exception: If deletion fails
+        """
+        pass
