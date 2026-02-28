@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import date
 from typing import Annotated, List, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -91,6 +91,60 @@ async def update_me(
         return response
     except Exception as e:
         raise e
+
+
+@app.put("/api/v1/me/profile-image")
+async def update_profile_image(
+    current_user: Annotated[User, Depends(get_current_user)],
+    user_profile_service: Annotated[
+        UserProfileService, Depends(get_user_profile_service)
+    ],
+    file: UploadFile = File(...),
+) -> User:
+    """
+    Update user profile image.
+
+    Uploads new profile image to R2 storage and deletes old image if exists.
+    """
+    try:
+        # Read image data from uploaded file
+        image_data = await file.read()
+
+        # Update profile image using service
+        updated_user = await user_profile_service.update_profile_img(
+            current_user, image_data
+        )
+        return updated_user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update profile image: {str(e)}",
+        )
+
+
+@app.delete("/api/v1/me/profile-image")
+async def delete_profile_image(
+    current_user: Annotated[User, Depends(get_current_user)],
+    user_profile_service: Annotated[
+        UserProfileService, Depends(get_user_profile_service)
+    ],
+) -> User:
+    """
+    Delete user profile image.
+
+    Removes profile image from R2 storage and sets profile_image_url to None.
+    """
+    try:
+        # Pass None to delete image without uploading new one
+        updated_user = await user_profile_service.update_profile_img(
+            current_user, None
+        )
+        return updated_user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete profile image: {str(e)}",
+        )
 
 
 @app.get(
