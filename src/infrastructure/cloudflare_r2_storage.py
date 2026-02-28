@@ -82,3 +82,21 @@ class CloudflareR2Storage(ImageStorage):
 
         except ClientError as e:
             raise Exception(f"Failed to upload image to R2: {str(e)}")
+
+    async def delete(self, file_name: str) -> None:
+        """
+        Delete image from Cloudflare R2.
+
+        Args:
+            file_name: Name of the file to delete
+
+        Raises:
+            Exception: If deletion fails
+        """
+        try:
+            self.s3_client.delete_object(
+                Bucket=self.bucket_name,
+                Key=file_name,
+            )
+        except ClientError as e:
+            raise Exception(f"Failed to delete image from R2: {str(e)}")
