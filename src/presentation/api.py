@@ -482,7 +482,7 @@ async def find_diary(
 
 
 @app.get(
-    "/api/v1/diary/chat_session/{diary_id}",
+    "/api/v1/diary/{diary_id}/chat_session",
     response_model=ChatSession,
     tags=["Diaries"],
 )
