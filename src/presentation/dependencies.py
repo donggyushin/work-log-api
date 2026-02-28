@@ -23,6 +23,7 @@ from src.domain.interfaces.refresh_token_repository import RefreshTokenRepositor
 from src.domain.interfaces.user_repository import UserRepository
 from src.domain.interfaces.verification_code_generator import VerificationCodeGenerator
 from src.domain.services.auth_service import AuthService
+from src.domain.services.chat_history_service import ChatHistoryService
 from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
 from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
@@ -167,6 +168,14 @@ def get_image_generator() -> ImageGenerator:
 
 def get_image_storage() -> ImageStorage:
     return CloudflareR2Storage()
+
+
+def get_chat_history_service(
+    chat_repository: Annotated[ChatRepository, Depends(get_chat_repository)],
+    diary_repository: Annotated[DiaryRepository, Depends(get_diary_repository)],
+) -> ChatHistoryService:
+    service = ChatHistoryService(chat_repository, diary_repository)
+    return service
 
 
 def get_diary_service(
