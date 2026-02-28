@@ -9,6 +9,7 @@ from src.domain.exceptions import (
     PasswordNotCorrectError,
     UserNotFoundError,
 )
+from src.domain.interfaces import email_verification_code_repository
 from src.domain.interfaces.email_verification_code_repository import (
     EmailVerificationCodeRepository,
 )
@@ -37,36 +38,6 @@ class AuthService:
         self.refresh_token_repository = refresh_token_repository
         self.random_name_generator = random_name_generator
         self.email_verification_code_repository = email_verification_code_repository
-
-    async def change_password(self, current_user: User, token: str, new_password: str):
-        verified = self.jwt_provider.verify_token(token)
-        user_id = verified.get("user_id")
-
-        if current_user.id != user_id:
-            raise NonAuthorizedError()
-
-        hashed_new_password = self.hasher.hash(new_password)
-        current_user.password = hashed_new_password
-
-        await self.user_repository.update(current_user)
-
-    async def verify_change_password(self, current_user: User, code: str) -> str:
-        verification_code = (
-            await self.email_verification_code_repository.find_by_user_id(
-                current_user.id
-            )
-        )
-
-        if verification_code is None:
-            raise NotFoundError()
-
-        if verification_code.code != code:
-            raise NotCorrectError()
-
-        await self.email_verification_code_repository.delete_by_user_id(current_user.id)
-
-        access_token = self.jwt_provider.generate_access_token(current_user.id)
-        return access_token
 
     async def refresh_token(self, refresh_token: str) -> dict:
         payload = self.jwt_provider.verify_token(refresh_token)
