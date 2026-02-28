@@ -31,3 +31,11 @@ class DiaryRepository(ABC):
     @abstractmethod
     async def delete(self, diary: Diary):
         pass
+
+    @abstractmethod
+    async def get_next_diary(self, diary: Diary) -> Optional[Diary]:
+        pass
+
+    @abstractmethod
+    async def get_prev_diary(self, diary: Diary) -> Optional[Diary]:
+        pass

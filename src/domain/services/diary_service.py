@@ -37,6 +37,17 @@ class DiaryService:
         self.payments_repository = payments_repository
         self.user_repository = user_repository
 
+    async def find_next_prev_diary(
+        self, diary_id: str
+    ) -> tuple[Optional[Diary], Optional[Diary]]:
+        diary = await self.diary_repository.find_by_id(diary_id)
+        if diary is None:
+            raise NotFoundError()
+        next = await self.diary_repository.get_next_diary(diary)
+        prev = await self.diary_repository.get_prev_diary(diary)
+
+        return (next, prev)
+
     async def delete(self, diary_id: str):
         found_diary = await self.diary_repository.find_by_id(diary_id)
         if found_diary is None:
