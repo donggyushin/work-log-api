@@ -135,6 +135,10 @@ Diary content:
         if active_session:
             return active_session
 
+        previous_user_wrote_diaries = await self.diary_repository.get_diary_list(
+            user.id, None, 10
+        )
+
         # 시스템 프롬프트 추가
         system_prompt = ChatMessage(
             id=str(ObjectId()),
@@ -145,6 +149,9 @@ Diary content:
 
             아래는 당신과 대화하는 유저의 서비스 프로필입니다. 간단하게 참고만 해주세요.
             {user}
+
+            아래는 최근 유저가 작성했던 일기들입니다. 간단하게 참고만 해주세요. 
+            {previous_user_wrote_diaries}
 
 
             당신은 글쓰기에 매우 탁월한 재능을 가지고 있습니다. 한국의 전설적인 장르문학의 대가이자, 드래곤라자, 눈물을 마시는 새, 피를 마시는 새 등 수많은 명작을 집필한 대한민국이 낳은 천재 중의 천재, 천인천 '이영도' 작가와 같은 기풍을 지녔습니다. 
