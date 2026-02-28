@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from src.domain.entities.chat import ChatMessage, ChatSession
 from src.domain.entities.diary import Diary
-from src.domain.entities.user import User
+from src.domain.entities.user import Gender, User
 from src.domain.exceptions import (
     EmailAlreadyExistsError,
     ExpiredError,
@@ -22,6 +22,7 @@ from src.domain.services.auth_service import AuthService
 from src.domain.services.chat_history_service import ChatHistoryService
 from src.domain.services.diary_service import DiaryService
 from src.domain.services.email_verification_service import EmailVerificationService
+from src.domain.services.user_profile_service import UserProfileService
 from src.infrastructure.database import connect_to_mongo, close_mongo_connection
 from src.presentation.dependencies import (
     get_auth_service,
@@ -29,6 +30,7 @@ from src.presentation.dependencies import (
     get_current_user,
     get_diary_service,
     get_email_verification_service,
+    get_user_profile_service,
 )
 
 
@@ -61,6 +63,34 @@ async def hello():
 @app.get("/api/v1/me")
 async def get_me(current_user: Annotated[User, Depends(get_current_user)]) -> User:
     return current_user
+
+
+class UpdateUserRequest(BaseModel):
+    username: str
+    birth: Optional[date]
+    gender: Optional[Gender]
+
+
+@app.put("/api/v1/me")
+async def update_me(
+    current_user: Annotated[User, Depends(get_current_user)],
+    user_profile_service: Annotated[
+        UserProfileService, Depends(get_user_profile_service)
+    ],
+    request: UpdateUserRequest,
+) -> User:
+    try:
+        updated_user = current_user
+        updated_user.username = request.username
+        updated_user.birth = request.birth
+        updated_user.gender = request.gender
+
+        response = await user_profile_service.update_user_profile(
+            current_user, updated_user
+        )
+        return response
+    except Exception as e:
+        raise e
 
 
 @app.get(
