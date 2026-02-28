@@ -130,9 +130,6 @@ def get_auth_service(
     random_name_generator: Annotated[
         RandomNameGenerator, Depends(get_random_name_generator)
     ],
-    email_verification_code_repository: Annotated[
-        EmailVerificationCodeRepository, Depends(get_email_verification_code_repository)
-    ],
 ) -> AuthService:
     """Get auth service instance with all dependencies injected"""
     return AuthService(
@@ -141,7 +138,6 @@ def get_auth_service(
         hasher=hasher,
         refresh_token_repository=refresh_token_repo,
         random_name_generator=random_name_generator,
-        email_verification_code_repository=email_verification_code_repository,
     )
 
 

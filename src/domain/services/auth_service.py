@@ -2,16 +2,10 @@ from typing import Optional
 from src.domain.entities.user import User
 from src.domain.exceptions import (
     EmailAlreadyExistsError,
-    NonAuthorizedError,
-    NotCorrectError,
     NotFoundError,
     PasswordLengthNotEnoughError,
     PasswordNotCorrectError,
     UserNotFoundError,
-)
-from src.domain.interfaces import email_verification_code_repository
-from src.domain.interfaces.email_verification_code_repository import (
-    EmailVerificationCodeRepository,
 )
 from src.domain.interfaces.hasher import Hasher
 from src.domain.interfaces.jwt_provider import JWTProvider
@@ -30,14 +24,12 @@ class AuthService:
         hasher: Hasher,
         refresh_token_repository: RefreshTokenRepository,
         random_name_generator: RandomNameGenerator,
-        email_verification_code_repository: EmailVerificationCodeRepository,
     ):
         self.user_repository = user_repository
         self.jwt_provider = jwt_provider
         self.hasher = hasher
         self.refresh_token_repository = refresh_token_repository
         self.random_name_generator = random_name_generator
-        self.email_verification_code_repository = email_verification_code_repository
 
     async def refresh_token(self, refresh_token: str) -> dict:
         payload = self.jwt_provider.verify_token(refresh_token)
