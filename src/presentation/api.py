@@ -136,9 +136,7 @@ async def delete_profile_image(
     """
     try:
         # Pass None to delete image without uploading new one
-        updated_user = await user_profile_service.update_profile_img(
-            current_user, None
-        )
+        updated_user = await user_profile_service.update_profile_img(current_user, None)
         return updated_user
     except Exception as e:
         raise HTTPException(
@@ -355,8 +353,37 @@ async def send_email_verification_code(
     await email_verification_service.send_verification_code(current_user)
 
 
+class ChangePasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
+@app.patch("/api/v1/auth/password")
+async def change_password(
+    current_user: Annotated[User, Depends(get_current_user)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    request: ChangePasswordRequest,
+):
+    await auth_service.change_password(
+        current_user, request.token, request.new_password
+    )
+
+
 class VerifyEmailRequest(BaseModel):
     code: str
+
+
+@app.post("/api/v1/auth/password/verify_email")
+async def verify_email_to_change_password(
+    request: VerifyEmailRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+) -> str:
+    try:
+        token = await auth_service.verify_change_password(current_user, request.code)
+        return token
+    except Exception as e:
+        raise e
 
 
 @app.post("/api/v1/verify_email")
