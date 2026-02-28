@@ -11,7 +11,7 @@ class MongoUserRepository(UserRepository):
         self.collection: AsyncIOMotorCollection = db_client[db_name]["users"]
 
     async def create(self, user: User) -> User:
-        user_dict = user.model_dump(exclude={"id"})
+        user_dict = user.model_dump(mode="json", exclude={"id"})
         result = await self.collection.insert_one(user_dict)
         return User(**user_dict, id=str(result.inserted_id))
 
@@ -32,7 +32,7 @@ class MongoUserRepository(UserRepository):
         return User(**result)
 
     async def update(self, user: User) -> User:
-        user_dict = user.model_dump(exclude={"id"})
+        user_dict = user.model_dump(mode="json", exclude={"id"})
         await self.collection.replace_one(
             {"_id": ObjectId(user.id)},
             user_dict
