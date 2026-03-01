@@ -546,7 +546,7 @@ async def write_diary(
     return await diary_service.write_diary(request.session_id, request.message_id)
 
 
-@app.post("/api/v1/diary/direct")
+@app.post("/api/v1/diary/direct", tags=["Diaries"])
 async def write_diary_directly(
     current_user: Annotated[User, Depends(get_current_user)],
     request: WriteDiaryDirectRequest,
@@ -561,7 +561,7 @@ async def write_diary_directly(
         raise e
 
 
-@app.put("/api/v1/diary/{diary_id}")
+@app.put("/api/v1/diary/{diary_id}", tags=["Diaries"])
 async def update_diary(
     request: WriteDiaryDirectRequest,
     diary_service: Annotated[DiaryService, Depends(get_diary_service)],
