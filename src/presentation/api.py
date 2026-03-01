@@ -112,6 +112,11 @@ class GetNextAndPrevDiariesResponse(BaseModel):
     prev: Optional[Diary]
 
 
+class WriteDiaryDirectRequest(BaseModel):
+    title: Optional[str]
+    content: str
+
+
 # ========================================
 # Application Setup
 # ========================================
@@ -539,6 +544,36 @@ async def write_diary(
     diary_service: Annotated[DiaryService, Depends(get_diary_service)],
 ):
     return await diary_service.write_diary(request.session_id, request.message_id)
+
+
+@app.post("/api/v1/diary/direct")
+async def write_diary_directly(
+    current_user: Annotated[User, Depends(get_current_user)],
+    request: WriteDiaryDirectRequest,
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)],
+) -> Diary:
+    try:
+        diary = await diary_service.write_diary_direct(
+            current_user, request.title, request.content
+        )
+        return diary
+    except Exception as e:
+        raise e
+
+
+@app.put("/api/v1/diary/{diary_id}")
+async def update_diary(
+    request: WriteDiaryDirectRequest,
+    diary_service: Annotated[DiaryService, Depends(get_diary_service)],
+    diary_id: str,
+) -> Diary:
+    try:
+        diary = await diary_service.update_diary(
+            diary_id, request.title, request.content
+        )
+        return diary
+    except Exception as e:
+        raise e
 
 
 @app.patch("/api/v1/diary/{diary_id}/thumbnail", response_model=Diary, tags=["Diaries"])

@@ -1,6 +1,6 @@
 import re
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 
 import httpx
@@ -36,6 +36,35 @@ class DiaryService:
         self.image_storage = image_storage
         self.payments_repository = payments_repository
         self.user_repository = user_repository
+
+    async def write_diary_direct(
+        self, current_user: User, title: Optional[str], content: str
+    ) -> Diary:
+        diary = Diary(
+            user_id=current_user.id,
+            chat_session_id="",
+            title=title,
+            content=content,
+            user_wrote_this_diary_directly=True,
+        )
+
+        diary = await self.diary_repository.create(diary)
+
+        return diary
+
+    async def update_diary(
+        self, diary_id: str, title: Optional[str], content: str
+    ) -> Diary:
+        diary = await self.diary_repository.find_by_id(diary_id)
+        if diary is None:
+            raise NotFoundError()
+        diary.title = title
+        diary.content = content
+        diary.updated_at = datetime.now()
+
+        diary = await self.diary_repository.update(diary)
+
+        return diary
 
     async def find_next_prev_diary(
         self, diary_id: str

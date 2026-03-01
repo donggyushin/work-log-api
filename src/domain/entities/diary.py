@@ -10,6 +10,7 @@ class Diary(BaseModel):
     title: Optional[str] = Field()
     content: str = Field(min_length=20)
     writed_at: date = Field(default=date.today())
-    thumbnail_url: Optional[str] = Field()
+    thumbnail_url: Optional[str] = Field(default=None)
     created_at: datetime = Field(default=datetime.now())
     updated_at: datetime = Field(default=datetime.now())
+    user_wrote_this_diary_directly: bool = Field(default=False)
