@@ -123,6 +123,7 @@ class WriteDiaryDirectRequest(BaseModel):
 class EmotionTimelinePoint(BaseModel):
     diary_date: date = Field(description="Diary write date")
     emotion: Emotion = Field(description="Detected emotion")
+    emotion_score: int = Field(description="Emotion Score from 0 to 10")
     diary_id: str = Field(description="Diary ID for navigation")
     title: Optional[str] = Field(default=None, description="Diary title")
 
@@ -131,7 +132,9 @@ class EmotionSummary(BaseModel):
     total_count: int = Field(description="Total diaries in range")
     date_range: dict = Field(description="Actual date range {start, end}")
     emotion_counts: dict[str, int] = Field(description="Count by emotion type")
-    most_common_emotion: Optional[str] = Field(default=None, description="Most frequent emotion")
+    most_common_emotion: Optional[str] = Field(
+        default=None, description="Most frequent emotion"
+    )
 
 
 class EmotionTimelineResponse(BaseModel):
@@ -488,9 +491,15 @@ async def get_diary_list(
 )
 async def get_emotion_timeline(
     current_user: Annotated[User, Depends(get_current_user)],
-    statistics_service: Annotated[DiaryStatisticsService, Depends(get_diary_statistics_service)],
-    start_date: Annotated[Optional[date], Query(description="Filter start date (inclusive)")] = None,
-    end_date: Annotated[Optional[date], Query(description="Filter end date (inclusive)")] = None,
+    statistics_service: Annotated[
+        DiaryStatisticsService, Depends(get_diary_statistics_service)
+    ],
+    start_date: Annotated[
+        Optional[date], Query(description="Filter start date (inclusive)")
+    ] = None,
+    end_date: Annotated[
+        Optional[date], Query(description="Filter end date (inclusive)")
+    ] = None,
 ):
     """
     Get emotion timeline data for visualizing mood changes over time.
@@ -507,7 +516,7 @@ async def get_emotion_timeline(
     if start_date and end_date and start_date > end_date:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="start_date must be before or equal to end_date"
+            detail="start_date must be before or equal to end_date",
         )
 
     try:
@@ -519,21 +528,23 @@ async def get_emotion_timeline(
         timeline = []
         for diary in diaries:
             if diary.emotion is not None:  # Type narrowing for mypy
-                timeline.append(EmotionTimelinePoint(
-                    diary_date=diary.writed_at,
-                    emotion=diary.emotion,
-                    diary_id=diary.id,
-                    title=diary.title
-                ))
+                timeline.append(
+                    EmotionTimelinePoint(
+                        diary_date=diary.writed_at,
+                        emotion=diary.emotion,
+                        emotion_score=diary.emotion.score(),
+                        diary_id=diary.id,
+                        title=diary.title,
+                    )
+                )
 
         return EmotionTimelineResponse(
-            timeline=timeline,
-            summary=EmotionSummary(**summary)
+            timeline=timeline, summary=EmotionSummary(**summary)
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch emotion timeline: {str(e)}"
+            detail=f"Failed to fetch emotion timeline: {str(e)}",
         )
 
 
