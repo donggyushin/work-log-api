@@ -40,6 +40,16 @@ class DiaryService:
         self.user_repository = user_repository
         self.emotion_analyzer = emotion_analyzer
 
+    async def update_diary_emotion(self, diary_id: str) -> Diary:
+        diary = await self.diary_repository.find_by_id(diary_id)
+        if diary is None:
+            raise NotFoundError()
+
+        emotion = await self.emotion_analyzer.analyze(diary.content)
+        diary.emotion = emotion
+        await self.diary_repository.update(diary)
+        return diary
+
     async def write_diary_direct(
         self, current_user: User, title: Optional[str], content: str
     ) -> Diary:
