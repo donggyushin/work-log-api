@@ -136,52 +136,18 @@ class DiaryService:
         diary_content = diary.content
 
         img_url = await self.image_generator.generate(
-            prompt=f"""Create a soft, dreamy anime-style background illustration in the style of Studio Ghibli and Makoto Shinkai, inspired by this diary entry.
+            prompt=f"""Based on this diary entry, create a beautiful Japanese anime-style illustration:
 
-Art Style:
-- Soft, fluffy clouds with gentle gradients (Ghibli-style sky)
-- Warm, glowing light particles and lens flares (Shinkai-style atmosphere)
-- Watercolor-like soft edges and gentle color transitions
-- Cozy, whimsical, and emotionally warm tone
-- Pastel and warm color palette with soft shadows
+{diary_content}
 
-Visual Mood:
-- Comforting and nostalgic atmosphere
-- Gentle, diffused lighting that creates a warm glow
-- Peaceful, quiet moment captured in time
-- Emotionally inviting scene that feels like a safe, cozy space
+Style: Japanese anime background art (similar to Your Name, Weathering with You, A Silent Voice)
+- Hyper-detailed anime background painting style
+- Photorealistic lighting with anime aesthetics
+- Beautiful sky with dramatic clouds
+- Cinematic atmosphere with warm or cool tones depending on the mood
+- Sharp details in foreground, softer focus in background
 
-Key Elements to Include:
-- Fluffy, cotton-like clouds with soft pink/orange/purple tints
-- Gentle sunlight rays streaming through windows or trees
-- Small, cute details: potted plants, books, cushions, small animals (cats, birds)
-- Natural elements: grass swaying gently, leaves floating, flower petals
-- Warm indoor spaces: wooden floors, soft curtains, warm light from lamps
-- Windows showing beautiful skies (sunrise, sunset, or blue sky with puffy clouds)
-
-Color Palette:
-- Warm pastels: soft pink, peach, cream, lavender, mint, sky blue
-- Golden hour lighting: warm orange and yellow tones
-- Avoid harsh contrasts - everything should feel soft and blended
-- Colors should evoke comfort, warmth, and emotional safety
-
-Lighting & Atmosphere:
-- Soft bokeh effects and light particles floating in the air
-- Gentle lens flares and light bloom
-- Diffused shadows that feel soft, not harsh
-- Atmospheric haze that adds depth and dreaminess
-- Light should feel like it's hugging the scene
-
-Composition:
-- Cozy, intimate framing - as if we're peeking into a peaceful moment
-- Balance between interior comfort and outdoor beauty
-- Include small, endearing details that tell a gentle story
-- Everything should feel inviting and emotionally warm
-
-Create a scene that feels like a warm hug, where the viewer can feel comforted and emotionally connected to the moment. The image should be cute, fluffy, nostalgic, and deeply emotional.
-
-Diary content:
-{diary_content}"""
+Capture the emotion and scene from the diary naturally. Let the diary content guide the composition, setting, time of day, and mood. Don't force specific elements - interpret the diary's atmosphere freely."""
         )
 
         return img_url
