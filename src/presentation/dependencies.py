@@ -19,6 +19,7 @@ from src.domain.interfaces.image_generator import ImageGenerator
 from src.domain.interfaces.image_storage import ImageStorage
 from src.domain.interfaces.jwt_provider import JWTProvider
 from src.domain.interfaces.payments_repository import PaymentsRepository
+from src.domain.interfaces.post_repository import PostRepository
 from src.domain.interfaces.random_name_generator import RandomNameGenerator
 from src.domain.interfaces.refresh_token_repository import RefreshTokenRepository
 from src.domain.interfaces.user_repository import UserRepository
@@ -29,6 +30,7 @@ from src.domain.services.chat_history_service import ChatHistoryService
 from src.domain.services.diary_service import DiaryService
 from src.domain.services.diary_statistics_service import DiaryStatisticsService
 from src.domain.services.email_verification_service import EmailVerificationService
+from src.domain.services.post_service import PostService
 from src.domain.services.user_profile_service import UserProfileService
 from src.infrastructure.anthropic_ai_chat_bot import AnthropicAIChatBot
 from src.infrastructure.anthropic_emotion_analyzer import AnthropicEmotionAnalyzer
@@ -43,6 +45,7 @@ from src.infrastructure.mongo_email_verification_code_repository import (
     MongoEmailVerificationCodeRepository,
 )
 from src.infrastructure.mongo_payments_repository import MongoPaymentsRepository
+from src.infrastructure.mongo_post_repository import MongoPostRepository
 from src.infrastructure.mongo_refresh_token_repository import (
     MongoRefreshTokenRepository,
 )
@@ -73,6 +76,12 @@ def get_diary_repository(
     db: Annotated[AsyncIOMotorDatabase, Depends(get_db)],
 ) -> DiaryRepository:
     return MongoDiaryRepository(db.client)
+
+
+def get_post_repository(
+    db: Annotated[AsyncIOMotorDatabase, Depends(get_db)],
+) -> PostRepository:
+    return MongoPostRepository(db.client)
 
 
 def get_user_repository(
@@ -241,6 +250,12 @@ def get_diary_service(
         user_repository,
         emotion_analyzer,
     )
+
+
+def get_post_service(
+    post_repository: Annotated[PostRepository, Depends(get_post_repository)],
+) -> PostService:
+    return PostService(post_repository)
 
 
 def get_diary_statistics_service(
