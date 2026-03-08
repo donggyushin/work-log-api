@@ -20,3 +20,7 @@ class PostRepository(ABC):
     @abstractmethod
     async def update(self, post: Post) -> Post:
         pass
+
+    @abstractmethod
+    async def delete(self, post_id: str):
+        pass

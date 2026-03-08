@@ -254,8 +254,9 @@ def get_diary_service(
 
 def get_post_service(
     post_repository: Annotated[PostRepository, Depends(get_post_repository)],
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> PostService:
-    return PostService(post_repository)
+    return PostService(post_repository, user_repository)
 
 
 def get_diary_statistics_service(

@@ -12,6 +12,9 @@ class MongoPostRepository(PostRepository):
     def __init__(self, db_client: AsyncIOMotorClient, db_name: str = "dailylog"):
         self.collection: AsyncIOMotorCollection = db_client[db_name]["posts"]
 
+    async def delete(self, post_id: str):
+        await self.collection.delete_one({"_id": ObjectId(post_id)})
+
     async def create(self, post: Post) -> Post:
         """Create a new post"""
         post_dict = post.model_dump(mode="json", exclude={"id"})
