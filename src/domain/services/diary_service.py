@@ -40,6 +40,14 @@ class DiaryService:
         self.user_repository = user_repository
         self.emotion_analyzer = emotion_analyzer
 
+    async def search_diaries(
+        self, current_user: User, query: str, cursor_id: Optional[str], size: int
+    ) -> List[Diary]:
+        diaries = await self.diary_repository.search(
+            current_user.id, query, cursor_id, size
+        )
+        return diaries
+
     async def update_diary_emotion(self, diary_id: str) -> Diary:
         diary = await self.diary_repository.find_by_id(diary_id)
         if diary is None:
