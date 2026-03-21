@@ -185,8 +185,7 @@ Style: Evocative watercolor and soft oil painting blend
 - Depth through layered washes and subtle gradients, not sharp detail
 - The mood of a handwritten letter or a page from a worn journal
 
-Do NOT use anime, cartoon, or illustration styles. Avoid bright saturated colors, dramatic effects, or fantasy elements.
-Interpret the diary's emotional undertone — loneliness, warmth, nostalgia, stillness — through composition, light, and negative space. Let the image breathe."""
+Interpret the diary's emotional undertone through composition, light, and negative space. Let the image breathe."""
         )
 
         return img_url
