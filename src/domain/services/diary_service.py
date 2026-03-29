@@ -103,9 +103,12 @@ class DiaryService:
             chat_session_id="",
             title=title,
             content=content,
-            user_wrote_this_diary_directly=True,
+            user_wrote_this_diary_directly=chat_session_id is None,
             emotion=emotion,
         )
+
+        if chat_session_id:
+            diary.chat_session_id = chat_session_id
 
         diary = await self.diary_repository.create(diary)
         if chat_session_id:
